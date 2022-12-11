@@ -101,6 +101,7 @@ class KITTIDataset(BaseDataset):
     odometry_benchmark["2011_09_30_drive_0028_extract"] = [11231, 53650]
     odometry_benchmark["2011_09_30_drive_0033_extract"] = [0, 16589]
     odometry_benchmark["2011_09_30_drive_0034_extract"] = [0, 12744]
+    odometry_benchmark["2022_03_15_drive_0001_extract"] = [0, 0]
 
     odometry_benchmark_img = OrderedDict()
     odometry_benchmark_img["2011_10_03_drive_0027_extract"] = [0, 45400]
@@ -428,6 +429,13 @@ def test_filter(args, dataset):
     torch_iekf.load(args, dataset)
     iekf.set_learned_covariance(torch_iekf)
 
+    test_datasets = []
+    for dataset_raw in dataset.datasets:
+        if dataset_raw in dataset.datasets_test:
+            test_datasets += [dataset_raw]
+
+    dataset.datasets = test_datasets
+
     for i in range(0, len(dataset.datasets)):
         dataset_name = dataset.dataset_name(i)
         if dataset_name not in dataset.odometry_benchmark.keys():
@@ -465,7 +473,7 @@ class KITTIArgs():
 
         # training, cross-validation and test dataset
         cross_validation_sequences = ['2011_09_30_drive_0028_extract']
-        test_sequences = ['2011_09_30_drive_0028_extract']
+        test_sequences = ['2022_03_15_drive_0001_extract']
         continue_training = True
 
         # choose what to do
