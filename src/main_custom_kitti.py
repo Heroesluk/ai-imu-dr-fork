@@ -438,8 +438,8 @@ def test_filter(args, dataset):
 
     for i in range(0, len(dataset.datasets)):
         dataset_name = dataset.dataset_name(i)
-        if dataset_name not in dataset.odometry_benchmark.keys():
-            continue
+        # if dataset_name not in dataset.odometry_benchmark.keys():
+        #     continue
         print("Test filter on sequence: " + dataset_name)
         t, ang_gt, p_gt, v_gt, u = prepare_data(args, dataset, dataset_name, i,
                                                        to_numpy=True)
@@ -463,7 +463,7 @@ def test_filter(args, dataset):
 
 
 class KITTIArgs():
-        path_data_base = "E:/GitHubRepositories/ai-imu-dr/data"
+        path_data_base = "C:/GitHubRepositories/ai-imu-dr/data"
         path_data_save = "../data"
         path_results = "../results"
         path_temp = "../temp"
@@ -473,7 +473,11 @@ class KITTIArgs():
 
         # training, cross-validation and test dataset
         cross_validation_sequences = ['2011_09_30_drive_0028_extract']
-        test_sequences = ['2022_03_15_drive_0001_extract']
+
+        # test_sequences = ['2011_09_26_drive_0015_extract']
+        # test_sequences = ['2011_09_30_drive_0028_extract']
+
+        test_sequences = ['2021_01_14_drive_0001_extract']
         continue_training = True
 
         # choose what to do
