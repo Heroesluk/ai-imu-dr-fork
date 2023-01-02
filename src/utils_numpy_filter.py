@@ -115,6 +115,7 @@ class NUMPYIEKF:
                            self.cov_Rot_c_i, self.cov_Rot_c_i, self.cov_Rot_c_i,
                            self.cov_t_c_i, self.cov_t_c_i, self.cov_t_c_i])
 
+    # https://aipiano.github.io/2019/04/28/不变扩展卡尔曼滤波3/
     def run(self, t, u, measurements_covs, v_mes, p_mes, N, ang0):
         dt = t[1:] - t[:-1]  # (s)
         if N is None:
@@ -122,14 +123,18 @@ class NUMPYIEKF:
         Rot, v, p, b_omega, b_acc, Rot_c_i, t_c_i, P = self.init_run(dt, u, p_mes, v_mes,
                                        ang0, N)
 
+        Rot_ang = np.zeros((N, 3))
+
         for i in range(1, N):
-            Rot[i], v[i], p[i], b_omega[i], b_acc[i], Rot_c_i[i], t_c_i[i], P = \
-                self.propagate(Rot[i-1], v[i-1], p[i-1], b_omega[i-1], b_acc[i-1], Rot_c_i[i-1],
-                               t_c_i[i-1], P, u[i], dt[i-1])
+            Rot[i], v[i], p[i], b_omega[i], b_acc[i], Rot_c_i[i], t_c_i[i], P, Rot_ang[i] = \
+                self.propagate_monitor(Rot[i-1], v[i-1], p[i-1], b_omega[i-1], b_acc[i-1], Rot_c_i[i-1],
+                               t_c_i[i-1], P, u[i], dt[i-1], Rot_ang[i-1])
 
             Rot[i], v[i], p[i], b_omega[i], b_acc[i], Rot_c_i[i], t_c_i[i], P = \
                 self.update(Rot[i], v[i], p[i], b_omega[i], b_acc[i], Rot_c_i[i], t_c_i[i], P, u[i],
                             i, measurements_covs[i])
+
+            Rot_ang[i] = NUMPYIEKF.to_rpy(Rot[i])
             # correct numerical error every second
             if i % self.n_normalize_rot == 0:
                 Rot[i] = self.normalize_rot(Rot[i])
@@ -180,6 +185,22 @@ class NUMPYIEKF:
         P = self.propagate_cov(P_prev, Rot_prev, v_prev, p_prev, b_omega_prev,
                                b_acc_prev, u, dt)
         return Rot, v, p, b_omega, b_acc, Rot_c_i, t_c_i, P
+
+    def propagate_monitor(self, Rot_prev, v_prev, p_prev, b_omega_prev, b_acc_prev, Rot_c_i_prev,
+                  t_c_i_prev, P_prev, u, dt, Rot_ang_prev):
+        acc = Rot_prev.dot(u[3:6] - b_acc_prev) + self.g
+        v = v_prev + acc * dt
+        p = p_prev + v_prev*dt + 1/2 * acc * dt**2
+        omega = u[:3] - b_omega_prev
+        Rot = Rot_prev.dot(self.so3exp(omega * dt))
+        Rot_ang = np.rad2deg(NUMPYIEKF.to_rpy(Rot))
+        b_omega = b_omega_prev
+        b_acc = b_acc_prev
+        Rot_c_i = Rot_c_i_prev
+        t_c_i = t_c_i_prev
+        P = self.propagate_cov(P_prev, Rot_prev, v_prev, p_prev, b_omega_prev,
+                               b_acc_prev, u, dt)
+        return Rot, v, p, b_omega, b_acc, Rot_c_i, t_c_i, P, Rot_ang
 
     def propagate_cov(self, P_prev, Rot_prev, v_prev, p_prev, b_omega_prev,
                       b_acc_prev, u, dt):

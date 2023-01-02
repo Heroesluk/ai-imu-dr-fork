@@ -174,39 +174,19 @@ class CustomDataset:
 
         aiimudr_dataset_observation = custom_parse_data.loc[
                               :,
-                              [CustomDataset._PHONE_GYROSCOPE_X,
-                               CustomDataset._PHONE_GYROSCOPE_Y,
-                               CustomDataset._PHONE_GYROSCOPE_Z,
+                              [CustomDataset._PHONE_GYROSCOPE_UNCALIBRATED_X,
+                               CustomDataset._PHONE_GYROSCOPE_UNCALIBRATED_Y,
+                               CustomDataset._PHONE_GYROSCOPE_UNCALIBRATED_Z,
                                CustomDataset._PHONE_ACCELEROMETER_X,
                                CustomDataset._PHONE_ACCELEROMETER_Y,
                                CustomDataset._PHONE_ACCELEROMETER_Z
                                ]].to_numpy()
 
-        gyro = aiimudr_dataset_observation[:, 0:3]
-        acce = aiimudr_dataset_observation[:, 3:6]
-
-        ori = custom_parse_data.loc[
-                              :,
-                              [CustomDataset._PHONE_GAME_ROTATION_VECTOR_SCALAR,
-                               CustomDataset._PHONE_GAME_ROTATION_VECTOR_X,
-                               CustomDataset._PHONE_GAME_ROTATION_VECTOR_Y,
-                               CustomDataset._PHONE_GAME_ROTATION_VECTOR_Z
-                               ]].to_numpy()
-        ori_q1 = quaternion.from_float_array(ori)
-        ori_q2 = quaternion.from_euler_angles(np.deg2rad(0), np.deg2rad(0), np.deg2rad(-135))
-        ori_q = ori_q2 * ori_q1
-
-        gyro_q = quaternion.from_float_array(np.concatenate([np.zeros([gyro.shape[0], 1]), gyro], axis=1))
-        acce_q = quaternion.from_float_array(np.concatenate([np.zeros([acce.shape[0], 1]), acce], axis=1))
-        gyro_nav = quaternion.as_float_array(ori_q * gyro_q * ori_q.conj())[:, 1:]
-        acce_nav = quaternion.as_float_array(ori_q * acce_q * ori_q.conj())[:, 1:]
-        aiimudr_dataset_v = np.concatenate([gyro_nav, acce_nav], axis=1)
-
         t = torch.from_numpy(aiimudr_dataset_timestamp)
         p_gt = torch.from_numpy(aiimudr_dataset_ground_truth_p)
         v_gt = torch.from_numpy(aiimudr_dataset_ground_truth_v)
         ang_gt = torch.from_numpy(aiimudr_dataset_ground_truth_ang)
-        u = torch.from_numpy(aiimudr_dataset_v)
+        u = torch.from_numpy(aiimudr_dataset_observation)
 
         aiimudr_data = {
             't': t,

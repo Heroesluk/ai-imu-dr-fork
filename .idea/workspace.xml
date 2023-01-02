@@ -2,18 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="423d8db3-8c37-4ad0-9913-4822d3d9166f" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/dataset_awesome_gins.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/generate_awesome_gins_dataset.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/utils_coordinate.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/ai-imu-dr.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ai-imu-dr.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/generate_custom_datase.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/generate_custom_dataset.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/dataset_custom.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/dataset_custom.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main_custom_kitti.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/main_custom_kitti.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/utils_plot.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils_plot.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/utils_time.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils_time.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/utils_numpy_filter.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils_numpy_filter.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -107,7 +99,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "WebServerToolWindowFactoryState": "false",
-    "last_opened_file_path": "C:/GithubRepositories/ai-imu-dr/src",
+    "last_opened_file_path": "C:/GithubRepositories/ai-imu-dr/src/generate_custom_dataset.py",
     "settings.editor.selected.configurable": "editor.preferences.tabs"
   }
 }]]></component>
@@ -116,7 +108,7 @@
       <recent name="C:\GithubRepositories\ai-imu-dr\src" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.main_custom_kitti">
+  <component name="RunManager" selected="Python.generate_custom_dataset">
     <configuration name="generate_awesome_gins_dataset" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="ai-imu-dr" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -132,6 +124,28 @@
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/generate_awesome_gins_dataset.py" />
       <option name="PARAMETERS" value="--path C:\GithubRepositories\awesome-gins-datasets\ICM20602" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="generate_custom_dataset" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="ai-imu-dr" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Softwares\anaconda3\envs\pytorch\python.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/generate_custom_dataset.py" />
+      <option name="PARAMETERS" value="--path C:\GithubRepositories\QPyside\datasets\20220315_WHUSPARK\SAMSUNG_GalaxyS8\20220315_102823_Q2" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -163,6 +177,7 @@
     </configuration>
     <list>
       <item itemvalue="Python.generate_awesome_gins_dataset" />
+      <item itemvalue="Python.generate_custom_dataset" />
       <item itemvalue="Python.main_custom_kitti" />
     </list>
     <recent_temporary>
@@ -184,7 +199,8 @@
       <updated>1555341094920</updated>
       <workItem from="1555341096254" duration="1531000" />
       <workItem from="1670750237956" duration="7132000" />
-      <workItem from="1671708094977" duration="65060000" />
+      <workItem from="1671708094977" duration="96400000" />
+      <workItem from="1672470914379" duration="10096000" />
     </task>
     <servers />
   </component>
@@ -254,13 +270,39 @@
           <line>196</line>
           <option name="timeStamp" value="31" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/utils_numpy_filter.py</url>
+          <line>128</line>
+          <option name="timeStamp" value="32" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/utils_numpy_filter.py</url>
+          <line>175</line>
+          <option name="timeStamp" value="33" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/utils_numpy_filter.py</url>
+          <line>132</line>
+          <option name="timeStamp" value="38" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/utils_numpy_filter.py</url>
+          <line>136</line>
+          <option name="timeStamp" value="42" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/dataset_custom.py</url>
+          <line>167</line>
+          <option name="timeStamp" value="43" />
+        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/ai_imu_dr$main_kitti.coverage" NAME="main_kitti Coverage Results" MODIFIED="1555342494523" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
+    <SUITE FILE_PATH="coverage/ai_imu_dr$generate_custom_dataset.coverage" NAME="generate_custom_dataset Coverage Results" MODIFIED="1672545717761" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
     <SUITE FILE_PATH="coverage/ai_imu_dr$generate_awesome_gins_dataset.coverage" NAME="generate_awesome_gins_dataset Coverage Results" MODIFIED="1672192182026" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
-    <SUITE FILE_PATH="coverage/ai_imu_dr$main_custom_kitti.coverage" NAME="main_custom_kitti Coverage Results" MODIFIED="1672192576314" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
+    <SUITE FILE_PATH="coverage/ai_imu_dr$main_custom_kitti.coverage" NAME="main_custom_kitti Coverage Results" MODIFIED="1672474327266" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/src/dataset.py">

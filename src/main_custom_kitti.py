@@ -474,10 +474,11 @@ class KITTIArgs():
         # training, cross-validation and test dataset
         cross_validation_sequences = ['2011_09_30_drive_0028_extract']
 
+        test_sequences = ['2011_09_26_drive_0009_extract']
         # test_sequences = ['2011_09_26_drive_0015_extract']
         # test_sequences = ['2011_09_30_drive_0028_extract']
 
-        test_sequences = ['2021_01_14_drive_0001_extract']
+        # test_sequences = ['2021_01_14_drive_0001_extract']
         continue_training = True
 
         # choose what to do
