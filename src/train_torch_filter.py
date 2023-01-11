@@ -191,7 +191,7 @@ def save_iekf(args, iekf):
 def mini_batch_step(dataset, dataset_name, iekf, list_rpe, t, ang_gt, p_gt, v_gt, u, N0):
     iekf.set_Q()
     measurements_covs = iekf.forward_nets(u)
-    Rot, v, p, b_omega, b_acc, Rot_c_i, t_c_i = iekf.run(t, u,measurements_covs,
+    Rot, v, p, b_omega, b_acc, Rot_c_i, t_c_i = iekf.run(t, u, measurements_covs,
                                                             v_gt, p_gt, t.shape[0],
                                                             ang_gt[0])
     delta_p, delta_p_gt = precompute_lost(Rot, p, list_rpe, N0)

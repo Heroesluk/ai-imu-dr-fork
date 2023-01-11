@@ -5,13 +5,12 @@ from collections import namedtuple
 import glob
 import time
 import datetime
-import pickle
 import torch
-import matplotlib.pyplot as plt
 from termcolor import cprint
 from navpy import lla2ned
 from collections import OrderedDict
 from dataset import BaseDataset
+from src.utils_time import interpolate_vector_linear
 from utils_torch_filter import TORCHIEKF
 from utils_numpy_filter import NUMPYIEKF as IEKF
 from utils import prepare_data
@@ -445,6 +444,18 @@ def test_filter(args, dataset):
                                                        to_numpy=True)
         N = None
         u_t = torch.from_numpy(u).double()
+
+        counts = t.shape[0]
+        t_interval = 1. / 100
+        t_resampled = np.arange(t[0]+0.008, t[-1], t_interval)
+        counts_resampled = t_resampled.shape[0]
+        u_interpolate = interpolate_vector_linear(u, t, t_resampled)
+
+        u_resampled = u
+        u_resampled[:counts_resampled, :] = u_interpolate[:counts_resampled, :]
+
+        u_t = torch.from_numpy(u_resampled).double()
+
         measurements_covs = torch_iekf.forward_nets(u_t)
         measurements_covs = measurements_covs.detach().numpy()
         start_time = time.time()
@@ -474,18 +485,21 @@ class KITTIArgs():
         # training, cross-validation and test dataset
         cross_validation_sequences = ['2011_09_30_drive_0028_extract']
 
-        test_sequences = ['2011_09_26_drive_0009_extract']
+        # test_sequences = ['2011_09_26_drive_0009_extract']
         # test_sequences = ['2011_09_26_drive_0015_extract']
+        test_sequences = ['2011_09_30_drive_0027_extract']
         # test_sequences = ['2011_09_30_drive_0028_extract']
 
         # test_sequences = ['2021_01_14_drive_0001_extract']
+        # test_sequences = ['2022_03_15_drive_0001_extract']
+
         continue_training = True
 
         # choose what to do
         read_data = 0
-        train_filter = 0
-        test_filter = 1
-        results_filter = 1
+        train_filter = 1
+        test_filter = 0
+        results_filter = 0
         dataset_class = KITTIDataset
         parameter_class = KITTIParameters
 
