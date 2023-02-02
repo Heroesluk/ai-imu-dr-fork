@@ -445,16 +445,32 @@ def test_filter(args, dataset):
         N = None
         u_t = torch.from_numpy(u).double()
 
-        counts = t.shape[0]
-        t_interval = 1. / 100
-        t_resampled = np.arange(t[0]+0.008, t[-1], t_interval)
-        counts_resampled = t_resampled.shape[0]
-        u_interpolate = interpolate_vector_linear(u, t, t_resampled)
+        # t_interval = 1. / 100
+        # t_resampled = np.arange(t[0]+0.05, t[-1], t_interval)
+        # counts_resampled = t_resampled.shape[0]
+        # u_interpolate = interpolate_vector_linear(u, t, t_resampled)
+        # u_resampled = u
+        # u_resampled[:counts_resampled, :] = u_interpolate[:counts_resampled, :]
+        # u_t = torch.from_numpy(u_resampled).double()
 
-        u_resampled = u
-        u_resampled[:counts_resampled, :] = u_interpolate[:counts_resampled, :]
+        degree_rotated = 90
+        rad_rotated = np.deg2rad(degree_rotated)
+        rotation_matrix_rotated = KITTIDataset.rotz(rad_rotated)
 
-        u_t = torch.from_numpy(u_resampled).double()
+        # u_rotated = u
+        # counts = t.shape[0]
+        # for j in range(0, counts):
+        #
+        #     u1_rotated = rotation_matrix_rotated.dot(u[j, :3].reshape(3, 1))
+        #     u2_rotated = rotation_matrix_rotated.dot(u[j, 3:].reshape(3, 1))
+        #     u_rotated[j, :3] = u1_rotated.reshape(1, 3)
+        #     u_rotated[j, 3:] = u2_rotated.reshape(1, 3)
+        # u_t = torch.from_numpy(u_rotated).double()
+        v_rotated = rotation_matrix_rotated.dot(v_gt[0, :].reshape(3, 1))
+        v_gt[0, :] = v_rotated.reshape(1, 3)
+        ang_gt[0, 2] = ang_gt[0, 2] + degree_rotated
+
+        # v_gt[0, :] = v_gt[0, :] + [10, 0, 0]
 
         measurements_covs = torch_iekf.forward_nets(u_t)
         measurements_covs = measurements_covs.detach().numpy()
@@ -487,8 +503,8 @@ class KITTIArgs():
 
         # test_sequences = ['2011_09_26_drive_0009_extract']
         # test_sequences = ['2011_09_26_drive_0015_extract']
-        test_sequences = ['2011_09_30_drive_0027_extract']
-        # test_sequences = ['2011_09_30_drive_0028_extract']
+        # test_sequences = ['2011_09_30_drive_0027_extract']
+        test_sequences = ['2011_09_30_drive_0028_extract']
 
         # test_sequences = ['2021_01_14_drive_0001_extract']
         # test_sequences = ['2022_03_15_drive_0001_extract']
@@ -497,9 +513,9 @@ class KITTIArgs():
 
         # choose what to do
         read_data = 0
-        train_filter = 1
-        test_filter = 0
-        results_filter = 0
+        train_filter = 0
+        test_filter = 1
+        results_filter = 1
         dataset_class = KITTIDataset
         parameter_class = KITTIParameters
 
