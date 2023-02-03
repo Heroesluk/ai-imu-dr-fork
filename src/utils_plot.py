@@ -171,26 +171,26 @@ def results_filter(args, dataset):
         ax3.grid()
         ax4.grid()
         axs1[0].legend(
-            ['$p_n^x$', '$p_n^y$', '$p_n^z$', '$\hat{p}_n^x$', '$\hat{p}_n^y$', '$\hat{p}_n^z$'])
+            ['$p_n^x$', '$p_n^y$', '$p_n^z$', '$\hat{p}_n^x$', '$\hat{p}_n^y$', '$\hat{p}_n^z$'], loc='upper right')
         axs1[1].legend(
-            ['$v_n^x$', '$v_n^y$', '$v_n^z$', '$\hat{v}_n^x$', '$\hat{v}_n^y$', '$\hat{v}_n^z$'])
+            ['$v_n^x$', '$v_n^y$', '$v_n^z$', '$\hat{v}_n^x$', '$\hat{v}_n^y$', '$\hat{v}_n^z$'], loc='upper right')
         axs1[2].legend(
-            ['$v_n^x$', '$v_n^y$', '$v_n^z$', '$\hat{v}_n^x$', '$\hat{v}_n^y$', '$\hat{v}_n^z$'])
+            ['$v_n^x$', '$v_n^y$', '$v_n^z$', '$\hat{v}_n^x$', '$\hat{v}_n^y$', '$\hat{v}_n^z$'], loc='upper right')
         axs2[0].legend([r'$\phi_n^x$', r'$\theta_n^y$', r'$\psi_n^z$', r'$\hat{\phi}_n^x$',
-                        r'$\hat{\theta}_n^y$', r'$\hat{\psi}_n^z$'])
+                        r'$\hat{\theta}_n^y$', r'$\hat{\psi}_n^z$'], loc='upper right')
         axs2[1].legend(
-            ['$b_n^x$', '$b_n^y$', '$b_n^z$', '$\hat{b}_n^x$', '$\hat{b}_n^y$', '$\hat{b}_n^z$'])
+            ['$b_n^x$', '$b_n^y$', '$b_n^z$', '$\hat{b}_n^x$', '$\hat{b}_n^y$', '$\hat{b}_n^z$'], loc='upper right')
         axs2[2].legend(
-            ['$b_n^x$', '$b_n^y$', '$b_n^z$', '$\hat{b}_n^x$', '$\hat{b}_n^y$', '$\hat{b}_n^z$'])
-        ax3.legend(['ground-truth trajectory', 'proposed'])
-        ax4.legend(['ground-truth trajectory', 'proposed'])
-        axs5[0].legend(['zero lateral velocity', 'zero vertical velocity'])
-        axs6[0].legend(['$\omega_n^x$', '$\omega_n^y$', '$\omega_n^z$'])
-        axs6[1].legend(['$a_n^x$', '$a_n^y$', '$a_n^z$'])
+            ['$b_n^x$', '$b_n^y$', '$b_n^z$', '$\hat{b}_n^x$', '$\hat{b}_n^y$', '$\hat{b}_n^z$'], loc='upper right')
+        ax3.legend(['ground-truth trajectory', 'proposed'], loc='upper right')
+        ax4.legend(['ground-truth trajectory', 'proposed'], loc='upper right')
+        axs5[0].legend(['zero lateral velocity', 'zero vertical velocity'], loc='upper right')
+        axs6[0].legend(['$\omega_n^x$', '$\omega_n^y$', '$\omega_n^z$'], loc='upper right')
+        axs6[1].legend(['$a_n^x$', '$a_n^y$', '$a_n^z$'], loc='upper right')
         if u.shape[1] > 6:
-            axs6[2].legend(['$m_n^x$', '$m_n^y$', '$m_n^z$'])
-        axs7[0].legend(['MATE xy', 'MATE z', 'RMSE xy', 'RMSE z'])
-        axs7[1].legend(['CATE xy', 'CATE z'])
+            axs6[2].legend(['$m_n^x$', '$m_n^y$', '$m_n^z$'], loc='upper right')
+        axs7[0].legend(['MATE xy', 'MATE z', 'RMSE xy', 'RMSE z'], loc='upper right')
+        axs7[1].legend(['CATE xy', 'CATE z'], loc='upper right')
 
         # save figures
         figs = [fig1, fig2, fig3, fig4, fig5, fig6, fig7, ]
@@ -200,7 +200,7 @@ def results_filter(args, dataset):
             fig_name = figs_name[l]
             fig.savefig(os.path.join(folder_path, fig_name + ".png"))
 
-        plt.show(block=True)
+        # plt.show(block=True)
 
 
 

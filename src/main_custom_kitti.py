@@ -5,13 +5,12 @@ from collections import namedtuple
 import glob
 import time
 import datetime
-import pickle
 import torch
-import matplotlib.pyplot as plt
 from termcolor import cprint
 from navpy import lla2ned
 from collections import OrderedDict
 from dataset import BaseDataset
+from src.utils_time import interpolate_vector_linear
 from utils_torch_filter import TORCHIEKF
 from utils_numpy_filter import NUMPYIEKF as IEKF
 from utils import prepare_data
@@ -438,13 +437,41 @@ def test_filter(args, dataset):
 
     for i in range(0, len(dataset.datasets)):
         dataset_name = dataset.dataset_name(i)
-        if dataset_name not in dataset.odometry_benchmark.keys():
-            continue
+        # if dataset_name not in dataset.odometry_benchmark.keys():
+        #     continue
         print("Test filter on sequence: " + dataset_name)
         t, ang_gt, p_gt, v_gt, u = prepare_data(args, dataset, dataset_name, i,
                                                        to_numpy=True)
         N = None
         u_t = torch.from_numpy(u).double()
+
+        # t_interval = 1. / 100
+        # t_resampled = np.arange(t[0]+0.05, t[-1], t_interval)
+        # counts_resampled = t_resampled.shape[0]
+        # u_interpolate = interpolate_vector_linear(u, t, t_resampled)
+        # u_resampled = u
+        # u_resampled[:counts_resampled, :] = u_interpolate[:counts_resampled, :]
+        # u_t = torch.from_numpy(u_resampled).double()
+
+        degree_rotated = 90
+        rad_rotated = np.deg2rad(degree_rotated)
+        rotation_matrix_rotated = KITTIDataset.rotz(rad_rotated)
+
+        # u_rotated = u
+        # counts = t.shape[0]
+        # for j in range(0, counts):
+        #
+        #     u1_rotated = rotation_matrix_rotated.dot(u[j, :3].reshape(3, 1))
+        #     u2_rotated = rotation_matrix_rotated.dot(u[j, 3:].reshape(3, 1))
+        #     u_rotated[j, :3] = u1_rotated.reshape(1, 3)
+        #     u_rotated[j, 3:] = u2_rotated.reshape(1, 3)
+        # u_t = torch.from_numpy(u_rotated).double()
+        v_rotated = rotation_matrix_rotated.dot(v_gt[0, :].reshape(3, 1))
+        v_gt[0, :] = v_rotated.reshape(1, 3)
+        ang_gt[0, 2] = ang_gt[0, 2] + degree_rotated
+
+        # v_gt[0, :] = v_gt[0, :] + [10, 0, 0]
+
         measurements_covs = torch_iekf.forward_nets(u_t)
         measurements_covs = measurements_covs.detach().numpy()
         start_time = time.time()
@@ -463,7 +490,7 @@ def test_filter(args, dataset):
 
 
 class KITTIArgs():
-        path_data_base = "E:/GitHubRepositories/ai-imu-dr/data"
+        path_data_base = "C:/GitHubRepositories/ai-imu-dr/data"
         path_data_save = "../data"
         path_results = "../results"
         path_temp = "../temp"
@@ -473,7 +500,15 @@ class KITTIArgs():
 
         # training, cross-validation and test dataset
         cross_validation_sequences = ['2011_09_30_drive_0028_extract']
-        test_sequences = ['2022_03_15_drive_0001_extract']
+
+        # test_sequences = ['2011_09_26_drive_0009_extract']
+        # test_sequences = ['2011_09_26_drive_0015_extract']
+        # test_sequences = ['2011_09_30_drive_0027_extract']
+        test_sequences = ['2011_09_30_drive_0028_extract']
+
+        # test_sequences = ['2021_01_14_drive_0001_extract']
+        # test_sequences = ['2022_03_15_drive_0001_extract']
+
         continue_training = True
 
         # choose what to do
