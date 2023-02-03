@@ -124,7 +124,7 @@ def prepare_loss_data(args, dataset):
     list_rpe_ = copy.deepcopy(list_rpe)
     dataset.list_rpe = {}
     for dataset_name, rpe in list_rpe_.items():
-        if len(rpe[0]) is not 0:
+        if len(rpe[0]) != 0:
             dataset.list_rpe[dataset_name] = list_rpe[dataset_name]
         else:
             dataset.datasets_train_filter.pop(dataset_name)
@@ -134,7 +134,7 @@ def prepare_loss_data(args, dataset):
     list_rpe_validation_ = copy.deepcopy(list_rpe_validation)
     dataset.list_rpe_validation = {}
     for dataset_name, rpe in list_rpe_validation_.items():
-        if len(rpe[0]) is not 0:
+        if len(rpe[0]) != 0:
             dataset.list_rpe_validation[dataset_name] = list_rpe_validation[dataset_name]
         else:
             dataset.datasets_validatation_filter.pop(dataset_name)
@@ -156,7 +156,7 @@ def train_loop(args, dataset, epoch, iekf, optimizer, seq_dim):
         loss = mini_batch_step(dataset, dataset_name, iekf,
                                dataset.list_rpe[dataset_name], t, ang_gt, p_gt, v_gt, u, N0)
 
-        if loss is -1 or torch.isnan(loss):
+        if loss == -1 or torch.isnan(loss):
             cprint("{} loss is invalid".format(i), 'yellow')
             continue
         elif loss > max_loss:
@@ -255,14 +255,14 @@ def precompute_lost(Rot, p, list_rpe, N0):
     idxs_0 = torch.Tensor(list_rpe[0]).clone().long() - int(N0 / 10)
     idxs_end = torch.Tensor(list_rpe[1]).clone().long() - int(N0 / 10)
     delta_p_gt = list_rpe[2]
-    idxs = torch.Tensor(idxs_0.shape[0]).byte()
-    idxs[:] = 1
-    idxs[idxs_0 < 0] = 0
-    idxs[idxs_end >= int(N / 10)] = 0
+    idxs = torch.Tensor(idxs_0.shape[0]).bool()
+    idxs[:] = True
+    idxs[idxs_0 < 0] = False
+    idxs[idxs_end >= int(N / 10)] = False
     delta_p_gt = delta_p_gt[idxs]
     idxs_end_bis = idxs_end[idxs]
     idxs_0_bis = idxs_0[idxs]
-    if len(idxs_0_bis) is 0: 
+    if len(idxs_0_bis) == 0:
         return None, None     
     else:
         delta_p = Rot_10_Hz[idxs_0_bis].transpose(-1, -2).matmul(
