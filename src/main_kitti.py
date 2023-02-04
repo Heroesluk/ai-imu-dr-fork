@@ -1,3 +1,4 @@
+import logging
 import os
 import shutil
 import numpy as np
@@ -470,14 +471,16 @@ class KITTIArgs():
 
         # choose what to do
         read_data = 0
-        train_filter = 0
-        test_filter = 1
-        results_filter = 1
+        train_filter = 1
+        test_filter = 0
+        results_filter = 0
         dataset_class = KITTIDataset
         parameter_class = KITTIParameters
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
+
     args = KITTIArgs()
     dataset = KITTIDataset(args)
     launch(KITTIArgs)

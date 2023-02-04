@@ -4,6 +4,8 @@ import numpy as np
 import os
 import time
 from termcolor import cprint
+
+from utils_log import log_info
 from utils_numpy_filter import NUMPYIEKF
 from utils import prepare_data
 
@@ -461,7 +463,12 @@ class TORCHIEKF(torch.nn.Module, NUMPYIEKF):
         if os.path.isfile(path_iekf):
             mondict = torch.load(path_iekf)
             self.load_state_dict(mondict)
-            cprint("IEKF nets loaded", 'green')
+            # cprint("IEKF nets loaded", 'green')
+            modification_time = os.path.getmtime(path_iekf)
+            local_struct_time = time.localtime(modification_time)
+            local_format_time = time.strftime("%Y%m%d_%H%M%S", local_struct_time)
+            log_str = "load {} IEKF nets".format(local_format_time)
+            log_info('TORCHIEKF', log_str)
         else:
             cprint("IEKF nets NOT loaded", 'yellow')
         self.get_normalize_u(dataset)
