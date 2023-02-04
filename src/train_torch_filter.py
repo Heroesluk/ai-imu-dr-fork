@@ -1,12 +1,15 @@
+import copy
+import math
 import os
 import time
-import torch
-import matplotlib.pyplot as plt
+
 import numpy as np
+import torch
 from termcolor import cprint
-from utils_torch_filter import TORCHIEKF
+
 from utils import prepare_data
-import copy
+from utils_log import log_info
+from utils_torch_filter import TORCHIEKF
 
 max_loss = 2e1
 max_grad_norm = 1e0
@@ -59,14 +62,20 @@ def compute_delta_p(Rot, p):
 def train_filter(args, dataset):
     iekf = prepare_filter(args, dataset)
     prepare_loss_data(args, dataset)
-    save_iekf(args, iekf)
-    optimizer = set_optimizer(iekf)
-    start_time = time.time()
 
-    for epoch in range(1, args.epochs + 1):
-        train_loop(args, dataset, epoch, iekf, optimizer, args.seq_dim)
+    start_time = time.time()
+    train_log_start_time = start_time
+    config_epoch = args.epochs
+    save_iekf_net_copy(args, iekf, train_log_start_time, 0, config_epoch, 0)
+    optimizer = set_optimizer(iekf)
+
+    for epoch in range(1, config_epoch + 1):
+        train_loop_loss = train_loop(args, dataset, epoch, iekf, optimizer, args.seq_dim)
         save_iekf(args, iekf)
-        print("Amount of time spent for 1 epoch: {}s\n".format(int(time.time() - start_time)))
+        save_iekf_net_copy(args, iekf, train_log_start_time, epoch, config_epoch, train_loop_loss)
+        # print("Amount of time spent for 1 epoch: {} s\n".format(int(time.time() - start_time)))
+        log_str = "amount of time spent for epoch {}/{}: {} s".format(epoch, config_epoch, int(time.time() - start_time))
+        log_info('train_filter', log_str)
         start_time = time.time()
 
 
@@ -149,6 +158,9 @@ def prepare_loss_data(args, dataset):
 def train_loop(args, dataset, epoch, iekf, optimizer, seq_dim):
     loss_train = 0
     optimizer.zero_grad()
+
+    sequence_len = len(dataset.datasets_train_filter)
+
     for i, (dataset_name, Ns) in enumerate(dataset.datasets_train_filter.items()):
         t, ang_gt, p_gt, v_gt, u, N0 = prepare_data_filter(dataset, dataset_name, Ns,
                                                                   iekf, seq_dim)
@@ -164,7 +176,9 @@ def train_loop(args, dataset, epoch, iekf, optimizer, seq_dim):
             continue
         else:
             loss_train += loss
-            cprint("{} loss: {:.5f}".format(i, loss))
+            # cprint("{} loss: {:.5f}".format(i, loss))
+            log_str = "epoch {} sequence {}({}/{}) loss: {} ".format(epoch, dataset_name, i+1, sequence_len, loss)
+            log_info('train_loop', log_str)
 
     if loss_train == 0: 
         return 
@@ -177,15 +191,32 @@ def train_loop(args, dataset, epoch, iekf, optimizer, seq_dim):
     else:
         optimizer.step()
         optimizer.zero_grad()
-        cprint("gradient norm: {:.5f}".format(g_norm))
-    print('Train Epoch: {:2d} \tLoss: {:.5f}'.format(epoch, loss_train))
+        # cprint("gradient norm: {:.5f}".format(g_norm))
+        log_str = "epoch {} gradient norm: {} ".format(epoch, g_norm)
+        log_info('train_loop', log_str)
+
+    # print('Train Epoch: {:2d} \tLoss: {:.5f}'.format(epoch, loss_train))
+    log_str = "epoch {} loss: {} ".format(epoch, loss_train)
+    log_info('train_loop', log_str)
+
     return loss_train
 
 
 def save_iekf(args, iekf):
     file_name = os.path.join(args.path_temp, "iekfnets.p")
     torch.save(iekf.state_dict(), file_name)
-    print("The IEKF nets are saved in the file " + file_name)
+    # print("The IEKF nets are saved in the file " + file_name)
+
+
+def save_iekf_net_copy(args, model, train_head_time, save_epoch, config_epoch, loss):
+    file_name_train_head_time = time.strftime("%Y%m%d_%H%M%S", time.localtime(train_head_time))
+    file_name_loss = math.floor(loss * 1e6)
+    file_name = "Model_IEKF_Train_Schedule_{}_Progress_{}_{}_Loss_{}.p".format(file_name_train_head_time, save_epoch, config_epoch, file_name_loss)
+    file_path = os.path.join(args.path_temp, file_name)
+    torch.save(model.state_dict(), file_path)
+    # print("The IEKF nets are saved in the file " + file_name)
+    log_str = "IEKF nets are saved in the file {}".format(file_name)
+    log_info('train_filter', log_str)
 
 
 def mini_batch_step(dataset, dataset_name, iekf, list_rpe, t, ang_gt, p_gt, v_gt, u, N0):

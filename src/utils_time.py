@@ -1,7 +1,20 @@
+import datetime
 import pandas as pd
 import scipy
 
 _nano_to_sec = 1e09
+
+
+def custom_file_save_timestamp():
+    datetime_now = datetime.datetime.now()
+    datetime_now_str = datetime_now.strftime("%y%a%m_%H%M%S")
+    return datetime_now_str
+
+
+def custom_log_timestamp():
+    datetime_now = datetime.datetime.now()
+    datetime_now_str = datetime_now.strftime("%Y-%m-%d %H:%M:%S.%f")
+    return datetime_now_str
 
 
 def custom_timestamp_nano_parser(custom_timestamp):
