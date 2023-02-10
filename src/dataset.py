@@ -81,6 +81,7 @@ class BaseDataset(Dataset):
     def set_normalize_factors(self):
         path_normalize_factor = os.path.join(self.path_temp, self.file_normalize_factor)
         # we set factors only if file does not exist
+        # 作者提供的 normalize_factors.p 和强制用代码生成的 normalize_factors 存在小的差异, 但是数据量都为 357314
         if os.path.isfile(path_normalize_factor):
             pickle_dict = self.load(path_normalize_factor)
             self.normalize_factors = pickle_dict['normalize_factors']
@@ -125,8 +126,9 @@ class BaseDataset(Dataset):
         return u_normalized
 
     def add_noise(self, u):
-        w = torch.randn_like(u[:, :6]) # noise
-        w_b = torch.randn_like(u[0, :6])  # bias
+        # https://pytorch.org/docs/stable/generated/torch.randn_like.html
+        w = torch.randn_like(u[:, :6])      # noise
+        w_b = torch.randn_like(u[0, :6])    # bias
         w[:, :3] *= self.sigma_gyro
         w[:, 3:6] *= self.sigma_acc
         w_b[:3] *= self.sigma_b_gyro

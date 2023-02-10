@@ -46,17 +46,21 @@ class MesNet(torch.nn.Module):
             self.beta_measurement = 3*torch.ones(2).double()
             self.tanh = torch.nn.Tanh()
 
-            self.cov_net = torch.nn.Sequential(torch.nn.Conv1d(6, 32, 5),
+            # Dropout refers to ignoring units of the adapter during training,
+            # and we set the probability p = 0.5 of any CNN element to be ignored (set to zero) during a sequence iteration.
+            # Toward this aim, we first define the learnable parameters. It
+            # consists of the 6210 parameters of the adapter, along
+            self.cov_net = torch.nn.Sequential(torch.nn.Conv1d(6, 32, 5),   # 参数个数 992 = 32 * (6 / 1) * 5 + 32
                        torch.nn.ReplicationPad1d(4),
                        torch.nn.ReLU(),
                        torch.nn.Dropout(p=0.5),
-                       torch.nn.Conv1d(32, 32, 5, dilation=3),
+                       torch.nn.Conv1d(32, 32, 5, dilation=3),              # 参数个数 5152 = 32 * (32 / 1) * 5 + 32
                        torch.nn.ReplicationPad1d(4),
                        torch.nn.ReLU(),
                        torch.nn.Dropout(p=0.5),
                        ).double()
             "CNN for measurement covariance"
-            self.cov_lin = torch.nn.Sequential(torch.nn.Linear(32, 2),
+            self.cov_lin = torch.nn.Sequential(torch.nn.Linear(32, 2),      # 参数个数 66 = 2 * 32 + 2
                                               torch.nn.Tanh(),
                                               ).double()
             self.cov_lin[0].bias.data[:] /= 100
@@ -67,6 +71,7 @@ class MesNet(torch.nn.Module):
             z_cov = self.cov_lin(y_cov)
             z_cov_net = self.beta_measurement.unsqueeze(0)*z_cov
             measurements_covs = (iekf.cov0_measurement.unsqueeze(0) * (10**z_cov_net))
+
             return measurements_covs
 
 

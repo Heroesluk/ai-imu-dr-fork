@@ -98,9 +98,6 @@ def prepare_filter(args, dataset):
 
 
 def prepare_loss_data(args, dataset):
-
-
-
     file_delta_p = os.path.join(args.path_temp, 'delta_p.p')
     if os.path.isfile(file_delta_p):
         mondict = dataset.load(file_delta_p)
@@ -162,6 +159,7 @@ def train_loop(args, dataset, epoch, iekf, optimizer, seq_dim):
     sequence_len = len(dataset.datasets_train_filter)
 
     for i, (dataset_name, Ns) in enumerate(dataset.datasets_train_filter.items()):
+        # Training consists of repeating for a chosen number of epochs the following iterations: i)
         t, ang_gt, p_gt, v_gt, u, N0 = prepare_data_filter(dataset, dataset_name, Ns,
                                                                   iekf, seq_dim)
 
@@ -225,6 +223,7 @@ def mini_batch_step(dataset, dataset_name, iekf, list_rpe, t, ang_gt, p_gt, v_gt
     Rot, v, p, b_omega, b_acc, Rot_c_i, t_c_i = iekf.run(t, u, measurements_covs,
                                                             v_gt, p_gt, t.shape[0],
                                                             ang_gt[0])
+    
     delta_p, delta_p_gt = precompute_lost(Rot, p, list_rpe, N0)
     if delta_p is None:
         return -1
@@ -255,6 +254,8 @@ def prepare_data_filter(dataset, dataset_name, Ns, iekf, seq_dim):
     u = u[Ns[0]: Ns[1]]
 
     # subsample data
+    # Regarding i), we sample a batch of nine 1 min sequences,
+    # where each sequence starts at a random arbitrary time.
     N0, N = get_start_and_end(seq_dim, u)
     t = t[N0: N].double()
     ang_gt = ang_gt[N0: N].double()
@@ -263,6 +264,7 @@ def prepare_data_filter(dataset, dataset_name, Ns, iekf, seq_dim):
     u = u[N0: N].double()
 
     # add noise
+    # We add to data a small Gaussian noise with standard deviation 10−4, a.k.a. data augmentation technique.
     if iekf.mes_net.training:
         u = dataset.add_noise(u)
 

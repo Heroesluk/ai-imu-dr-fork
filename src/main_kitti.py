@@ -119,15 +119,18 @@ class KITTIDataset(BaseDataset):
     def __init__(self, args):
         super(KITTIDataset, self).__init__(args)
 
-        self.datasets_validatation_filter['2011_09_30_drive_0028_extract'] = [11231, 53650]
-        self.datasets_train_filter["2011_10_03_drive_0042_extract"] = [0, None]
-        self.datasets_train_filter["2011_09_30_drive_0018_extract"] = [0, 15000]
-        self.datasets_train_filter["2011_09_30_drive_0020_extract"] = [0, None]
-        self.datasets_train_filter["2011_09_30_drive_0027_extract"] = [0, None]
-        self.datasets_train_filter["2011_09_30_drive_0033_extract"] = [0, None]
-        self.datasets_train_filter["2011_10_03_drive_0027_extract"] = [0, 18000]
-        self.datasets_train_filter["2011_10_03_drive_0034_extract"] = [0, 31000]
-        self.datasets_train_filter["2011_09_30_drive_0034_extract"] = [0, None]
+        self.datasets_validatation_filter['2011_09_30_drive_0028_extract'] = [11231, 53650] # 08
+
+        self.datasets_train_filter["2011_10_03_drive_0027_extract"] = [0, 18000]    # 00
+        self.datasets_train_filter["2011_10_03_drive_0042_extract"] = [0, None]     # 01
+        self.datasets_train_filter["2011_10_03_drive_0034_extract"] = [0, 31000]    # 02
+
+        self.datasets_train_filter["2011_09_30_drive_0018_extract"] = [0, 15000]    # 05
+        self.datasets_train_filter["2011_09_30_drive_0020_extract"] = [0, None]     # 06
+        self.datasets_train_filter["2011_09_30_drive_0027_extract"] = [0, None]     # 07
+
+        self.datasets_train_filter["2011_09_30_drive_0033_extract"] = [0, None]     # 09
+        self.datasets_train_filter["2011_09_30_drive_0034_extract"] = [0, None]     # 10
 
         for dataset_fake in KITTIDataset.datasets_fake:
             if dataset_fake in self.datasets:
