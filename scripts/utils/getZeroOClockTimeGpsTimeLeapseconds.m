@@ -3,7 +3,7 @@ function [outputArg1] = getZeroOClockTimeGpsTimeLeapseconds(zeroOClockTime)
 %   此处提供详细说明
 rGpsReferenceDateTime = datetime(1980,1,6);
 leapsecondsTable = leapseconds;
-searchedTimeRange = timerange(rGpsReferenceDateTime,zeroOClockTime);
+searchedTimeRange = timerange(rGpsReferenceDateTime,zeroOClockTime(1,1));
 searchedLeapsecondsTable = leapsecondsTable(searchedTimeRange,:);
 searchedLeapsecondsTableHeadType = searchedLeapsecondsTable.Type(1);
 searchedLeapsecondsTableHeadCumulativeAdjustment = searchedLeapsecondsTable.CumulativeAdjustment(1);
