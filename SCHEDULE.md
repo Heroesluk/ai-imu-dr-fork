@@ -8,7 +8,10 @@
 #### 2022/03/26 ~ 2022/04/01
 * 公式推导中的近似 1，用离散时间去近似连续时间，引入 IMU 测量值具有零阶保持的特性（可以理解为在下一个测量值出现之前，该持续时间内测量值维持最近输出的测量值） +
 * 公式推导中的近似 2，采用离散时间积分，数值计算的近似 +
-* SeerSense™ DS80 Module 开发环境配置和实验室环境数据采集和验证
+* SeerSense™ DS80 Module 开发环境配置和实验室环境数据采集和验证 - 
+* SeerSense™ DS80 Module USB 带宽支持 USB3.1 Gen1 最大带宽 3 Gbps，峰值电流为 3 A（5 V）（https://www.xvisiotech.com/xvisio-sdk-doc/01_xvisio_sdk_introduction/01_02_xvisio_device/xvisio_device-en.htm）+ | Surface Laptop（第一代）为 USB 3.0 接口（https://support.microsoft.com/zh-cn/surface/surface-laptop-%E7%AC%AC%E4%B8%80%E4%BB%A3-%E8%A7%84%E6%A0%BC%E5%92%8C%E5%8A%9F%E8%83%BD-30b1b484-4587-928f-ea9a-351d411569af），带宽为 480 Mbps（没有找到验证过的带宽参数），会影响 Viewer 显示帧率
+* Xvisio SDK Viewer Window 平台安装 + 
+* Xvisio SDK Viewer Android 平台安装 + 
 
 #### 2022/03/19 ~ 2022/03/25
 * 详细推导 IMU 测量值带有 Bias 的右不变卡尔曼滤波公式并用 Matlab 实现 -
