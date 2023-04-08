@@ -18,8 +18,12 @@ TAG = 'CompareSensors';
 
 COM_NUM = 2;
 
-cDatasetFolderPath1 = 'C:\Users\QIAN LONG\Downloads\2023_02_22\0010';
-cDatasetFolderPath2 = 'C:\Users\QIAN LONG\Downloads\2023_02_22\Pixel\0010';
+% cDatasetFolderPath1 = 'C:\Users\QIAN LONG\Downloads\2023_02_22\0010';
+% cDatasetFolderPath2 = 'C:\Users\QIAN LONG\Downloads\2023_02_22\Pixel\0010';
+
+cDatasetFolderPath1 = 'C:\Users\QIAN LONG\Downloads\2023_02_28\HUAWEI\0010';
+cDatasetFolderPath2 = 'C:\Users\QIAN LONG\Downloads\2023_02_28\PIXEL\0010';
+
 cDatasetContainerList = cell(COM_NUM,6);
 cDatasetContainerList{1,1} = cDatasetFolderPath1;
 cDatasetContainerList{2,1} = cDatasetFolderPath2;
@@ -47,7 +51,7 @@ for i = 1:COM_NUM
     sensorEventTimeStampMinusElapsedRealtimeNanos = sensorEventTime - systemClockTime;
     zEventTimeSystemClock = zSystemTime * MS2NS + sensorEventTimeStampMinusElapsedRealtimeNanos;
 
-    cDatasetContainerList{i,2} = zEventTimeSystemClock;
+    cDatasetContainerList{i,2} = zEventTimeGnssClock;
     cDatasetContainerList{i,3} = motionSensorAccelerometerUncalibratedRawData(:,[5 6 7]);
     cDatasetContainerList{i,4} = cDatasetContainerList{i,2}(1,1)*NS2S;
     cDatasetContainerList{i,5} = cDatasetContainerList{i,2}(N,1)*NS2S;

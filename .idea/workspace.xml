@@ -3,11 +3,14 @@
   <component name="ChangeListManager">
     <list default="true" id="423d8db3-8c37-4ad0-9913-4822d3d9166f" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SCHEDULE.md" beforeDir="false" afterPath="$PROJECT_DIR$/SCHEDULE.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/dataset.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main_kitti.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/main_kitti.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/train_torch_filter.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/train_torch_filter.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/utils_torch_filter.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils_torch_filter.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/CompareSensors.m" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/CompareSensors.m" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/CustomViewerSensor.m" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/CustomViewerSensor.m" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/CustomViewerSpan.m" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/CustomViewerSpan.m" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/utils/loadSpanPostData.m" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/utils/loadSpanPostData.m" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/utils/plotSEPose.m" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/utils/plotSEPose.m" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/dataset_custom.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/dataset_custom.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main_custom_kitti.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/main_custom_kitti.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/utils_plot.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils_plot.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -114,7 +117,7 @@
       <recent name="C:\GithubRepositories\ai-imu-dr\src" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.main_kitti">
+  <component name="RunManager" selected="Python.main_custom_kitti">
     <configuration name="main_custom_kitti" type="PythonConfigurationType" factoryName="Python" singleton="false" temporary="true">
       <module name="ai-imu-dr" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -217,7 +220,7 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/parse_custom_dataset.py" />
-      <option name="PARAMETERS" value="--path C:\GithubRepositories\QPyside\datasets\20220315_WHUSPARK\SAMSUNG_GalaxyS8\20220315_102823_Q2" />
+      <option name="PARAMETERS" value="--path E:\GitHubRepositories\QPyside\datasets\20220315_WHUSPARK\SAMSUNG_GalaxyS8\20220315_102823_Q2" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -261,7 +264,9 @@
       <workItem from="1675233924952" duration="3429000" />
       <workItem from="1675407045617" duration="23451000" />
       <workItem from="1675518257078" duration="53326000" />
-      <workItem from="1675995192286" duration="3142000" />
+      <workItem from="1675995192286" duration="6791000" />
+      <workItem from="1676855415843" duration="20110000" />
+      <workItem from="1678927360963" duration="26793000" />
     </task>
     <servers />
   </component>
@@ -351,13 +356,19 @@
           <line>300</line>
           <option name="timeStamp" value="103" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/dataset.py</url>
+          <line>124</line>
+          <option name="timeStamp" value="105" />
+        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/ai_imu_dr$main_custom_kitti.coverage" NAME="main_custom_kitti Coverage Results" MODIFIED="1675239019126" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
+    <SUITE FILE_PATH="coverage/ai_imu_dr$main_custom_kitti.coverage" NAME="main_custom_kitti Coverage Results" MODIFIED="1679014614349" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
     <SUITE FILE_PATH="coverage/ai_imu_dr$generate_awesome_gins_dataset.coverage" NAME="generate_awesome_gins_dataset Coverage Results" MODIFIED="1672192182026" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
     <SUITE FILE_PATH="coverage/ai_imu_dr$main_kitti.coverage" NAME="main_kitti Coverage Results" MODIFIED="1675843477018" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
+    <SUITE FILE_PATH="coverage/ai_imu_dr$parse_custom_dataset.coverage" NAME="parse_custom_dataset Coverage Results" MODIFIED="1678864815190" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
     <SUITE FILE_PATH="coverage/ai_imu_dr$generate_custom_dataset.coverage" NAME="generate_custom_dataset Coverage Results" MODIFIED="1672799314317" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
   </component>
   <component name="editorHistoryManager">
