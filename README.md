@@ -24,10 +24,17 @@ Our implementation is done in Python. We use [Pytorch](https://pytorch.org/) for
  
 ### Installation & Prerequies
 1.  Install [pytorch](http://pytorch.org). We perform all training and testing on its development branch.
+
+```
+conda create -n pytorch python=3.9
+conda activate pytorch
+conda install pytorch torchvision torchaudio cpuonly -c pytorch
+```
     
 2.  Install the following required packages, `matplotlib`, `numpy`, `termcolor`, `scipy`, `navpy`, e.g. with the pip3 command
 ```
 pip3 install matplotlib numpy termcolor scipy navpy
+pip3 install matplotlib numpy termcolor scipy navpy panda
 ```
     
 4.  Clone this repo

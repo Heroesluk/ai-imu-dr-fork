@@ -186,11 +186,23 @@ class CustomDataset:
                                CustomDataset._PHONE_ACCELEROMETER_Z
                                ]].to_numpy()
 
+        aiimudr_dataset_observation_length = aiimudr_dataset_observation.shape[0]
+        rotated_aiimudr_dataset_observation = np.zeros_like(aiimudr_dataset_observation)
+        rotation_from_phone_to_oxts_z = np.deg2rad(-90)
+        c = np.cos(rotation_from_phone_to_oxts_z)
+        s = np.sin(rotation_from_phone_to_oxts_z)
+        rotation_from_phone_to_oxts = np.array([[c, -s, 0], [s, c, 0], [0, 0, 1]])
+        for i in range(0, aiimudr_dataset_observation_length):
+            rotated_gyroscope_observation = rotation_from_phone_to_oxts.dot(aiimudr_dataset_observation[i, 0:3].reshape(3, 1))
+            rotated_acceleration_observation = rotation_from_phone_to_oxts.dot(aiimudr_dataset_observation[i, 3:6].reshape(3, 1))
+            rotated_aiimudr_dataset_observation[i, 0:3] = rotated_gyroscope_observation.reshape(1, 3)
+            rotated_aiimudr_dataset_observation[i, 3:6] = rotated_acceleration_observation.reshape(1, 3)
+
         t = torch.from_numpy(aiimudr_dataset_timestamp)
         p_gt = torch.from_numpy(aiimudr_dataset_ground_truth_p)
         v_gt = torch.from_numpy(aiimudr_dataset_ground_truth_v)
         ang_gt = torch.from_numpy(aiimudr_dataset_ground_truth_ang)
-        u = torch.from_numpy(aiimudr_dataset_observation)
+        u = torch.from_numpy(rotated_aiimudr_dataset_observation)
 
         aiimudr_data = {
             't': t,
