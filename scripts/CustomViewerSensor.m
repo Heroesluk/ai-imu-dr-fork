@@ -27,7 +27,11 @@ TAG = 'CustomViewerSensor';
 % cDatasetFolderPath = 'C:\Users\QIAN LONG\Downloads\2023_02_28\SAMSUNG\0010';
 
 % cDatasetFolderPath = 'C:\Users\QIAN LONG\Downloads\2023_03_01\HUAWEI\0001';
-cDatasetFolderPath = 'C:\Users\QIAN LONG\Downloads\2023_03_01\PIXEL\0001';
+% cDatasetFolderPath = 'C:\Users\QIAN LONG\Downloads\2023_03_01\PIXEL\0001';
+
+
+cDatasetFolderPath = 'C:\DoctorRelated\20230410重庆VDR数据采集\2023_04_10\HUAWEI\0003';
+
 
 kRawFolderName = 'raw';
 

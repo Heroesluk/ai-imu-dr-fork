@@ -1,4 +1,4 @@
-close all;
+% close all;
 clear;
 addpath(genpath(pwd));
 
@@ -24,9 +24,12 @@ ViridisColerPalette11 = ["#fde725" "#bddf26" "#7ad151" "#44bf70" "#22a884" "#219
 % cDatasetFolderPath = 'C:\Users\QIAN LONG\Downloads\2023_02_22\Pixel\0002';
 
 % cDatasetFolderPath = 'C:\Users\QIAN LONG\Downloads\2023_02_23\MIAOMI\0002';
-cDatasetFolderPath = 'C:\Users\QIAN LONG\Downloads\2023_02_23\HUAWEI\0001';
+% cDatasetFolderPath = 'C:\Users\QIAN LONG\Downloads\2023_02_23\HUAWEI\0001';
 
 % cDatasetFolderPath = 'C:\Users\QIAN LONG\Downloads\2023_02_24\0002';
+
+cDatasetFolderPath = 'C:\DoctorRelated\20230410重庆VDR数据采集\2023_04_10\HUAWEI_Mate30\0018';
+% cDatasetFolderPath = 'C:\DoctorRelated\20230410重庆VDR数据采集\2023_04_10\GOOGLE_Pixel3\0018';
 
 kRawFolderName = 'raw';
 

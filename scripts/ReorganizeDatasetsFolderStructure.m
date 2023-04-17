@@ -4,7 +4,7 @@ addpath(genpath(pwd));
 
 TAG = 'ReorganizeDatasetsFolderStructure';
 
-cDatasetFolderPath = 'C:\DoctorRelated\20230410重庆VDR数据采集\2023_04_11';
+cDatasetFolderPath = 'C:\DoctorRelated\20230410重庆VDR数据采集\2023_04_15';
 cSmartPhoneFolderNameList = ["HUAWEI_Mate30" "HUAWEI_P20" "GOOGLE_Pixel3"];
 cSmartPhoneFolderNameListLength = length(cSmartPhoneFolderNameList);
 
