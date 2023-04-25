@@ -28,8 +28,12 @@ ViridisColerPalette11 = ["#fde725" "#bddf26" "#7ad151" "#44bf70" "#22a884" "#219
 
 % cDatasetFolderPath = 'C:\Users\QIAN LONG\Downloads\2023_02_24\0002';
 
-cDatasetFolderPath = 'C:\DoctorRelated\20230410重庆VDR数据采集\2023_04_10\HUAWEI_Mate30\0018';
+% cDatasetFolderPath = 'C:\DoctorRelated\20230410重庆VDR数据采集\2023_04_10\HUAWEI_Mate30\0018';
 % cDatasetFolderPath = 'C:\DoctorRelated\20230410重庆VDR数据采集\2023_04_10\GOOGLE_Pixel3\0018';
+
+cDatasetFolderPath = 'E:\DoctorRelated\20230410重庆VDR数据采集\2023_04_10\Reorganized\0008\HUAWEI_Mate30';
+
+% cDatasetFolderPath = 'E:\DoctorRelated\20230410重庆VDR数据采集\2023_04_15\Reorganized\0001\GOOGLE_Pixel3';
 
 kRawFolderName = 'raw';
 
@@ -46,6 +50,9 @@ gnssClockFullBiasNanos = seneorGnssMeasurementRawData{:,6};
 gnssClockBiasNanos = seneorGnssMeasurementRawData{:,7};
 gnssClockBiasUncertaintyNanos = seneorGnssMeasurementRawData{:,8};
 gnssClockElapsedRealtimeNanos = seneorGnssMeasurementRawData{:,9};
+if mean(gnssClockElapsedRealtimeNanos) <= eps(0)
+    gnssClockElapsedRealtimeNanos = systemClockElapsedRealtimeNanos;
+end
 gnssClockElapsedRealtimeUncertaintyNanos = seneorGnssMeasurementRawData{:,10};
 gnssClockLeapSecond = seneorGnssMeasurementRawData{:,11};
 
@@ -194,26 +201,27 @@ systemBootTimeNanosGpsReferenceGnssMeasurementEventBase = estimatedGpsTime - gns
 minSystemBootTimeNanosGpsReferenceGnssMeasurementEventBase = min(systemBootTimeNanosGpsReferenceGnssMeasurementEventBase);
 pReferenceSystemBootTimeNanosGpsRefGnssMeasurementEventBase = floor(minSystemBootTimeNanosGpsReferenceGnssMeasurementEventBase * NS2US) * US2NS;
 pSystemBootTimeNanosGpsReferenceGnssMeasurementEventBase = systemBootTimeNanosGpsReferenceGnssMeasurementEventBase - pReferenceSystemBootTimeNanosGpsRefGnssMeasurementEventBase;
-plot(pSystemBootTimeNanosGpsReferenceGnssMeasurementEventBase,'Color',ViridisColerPalette05(3));
+plot(pSystemBootTimeNanosGpsReferenceGnssMeasurementEventBase,'Color',ViridisColerPalette05(3),'DisplayName','boot time');
 hold on;
 
 pUpperSystemBootTimeNanosGpsReferenceGnssMeasurementEventBase = pSystemBootTimeNanosGpsReferenceGnssMeasurementEventBase + int64(gnssClockElapsedRealtimeUncertaintyNanos);
 pLowerSystemBootTimeNanosGpsReferenceGnssMeasurementEventBase = pSystemBootTimeNanosGpsReferenceGnssMeasurementEventBase - int64(gnssClockElapsedRealtimeUncertaintyNanos);
-plot(pUpperSystemBootTimeNanosGpsReferenceGnssMeasurementEventBase,'LineStyle','--','Color',ViridisColerPalette05(2));
-plot(pLowerSystemBootTimeNanosGpsReferenceGnssMeasurementEventBase,'LineStyle','--','Color',ViridisColerPalette05(4));
+plot(pUpperSystemBootTimeNanosGpsReferenceGnssMeasurementEventBase,'LineStyle','--','Color',ViridisColerPalette05(2),'DisplayName','boot time upper uncertainty');
+plot(pLowerSystemBootTimeNanosGpsReferenceGnssMeasurementEventBase,'LineStyle','--','Color',ViridisColerPalette05(4),'DisplayName','boot time lower uncertainty');
 
 pMinValueUpperSystemBootTimeNanosGpsRefGnssMeasurementEventBase = min(pUpperSystemBootTimeNanosGpsReferenceGnssMeasurementEventBase);
 pMaxValueLowerSystemBootTimeNanosGpsRefGnssMeasurementEventBase = max(pLowerSystemBootTimeNanosGpsReferenceGnssMeasurementEventBase);
 pUpperSystemBootTimeNanosGpsRefGnssMeasurementEventBase = ones(N,1,'int64') * pMinValueUpperSystemBootTimeNanosGpsRefGnssMeasurementEventBase;
 pLowerSystemBootTimeNanosGpsRefGnssMeasurementEventBase = ones(N,1,'int64') * pMaxValueLowerSystemBootTimeNanosGpsRefGnssMeasurementEventBase;
-plot(pUpperSystemBootTimeNanosGpsRefGnssMeasurementEventBase,'LineStyle','--','Color',ViridisColerPalette05(1));
-plot(pLowerSystemBootTimeNanosGpsRefGnssMeasurementEventBase,'LineStyle','--','Color',ViridisColerPalette05(5));
+plot(pUpperSystemBootTimeNanosGpsRefGnssMeasurementEventBase,'LineStyle','--','Color',ViridisColerPalette05(1),'DisplayName','boot time min upper uncertainty');
+plot(pLowerSystemBootTimeNanosGpsRefGnssMeasurementEventBase,'LineStyle','--','Color',ViridisColerPalette05(5),'DisplayName','boot time max upper uncertainty');
 
 ax = gca;
 ax.YAxis.Exponent = 6;
 xlabel('Sample') ;
 ylabel('Nanosecond');
 title('Estimated system boot GPS time stability');
+legend;
 hold off;
 
 

@@ -4,11 +4,7 @@ dbstop error;
 % clc;
 addpath(genpath(pwd));
 
-TAG = 'CustomViewerSpan';
-
-% cSpanDatasetFolderPath = 'C:\Users\QIAN LONG\Downloads\20230301\车载数据';
-% cSpanDatasetRawDataFileName = '车载原始数据.DAT';
-% cSpanDatasetPostDataFileName = 'SPAN后处理数据.csv';
+TAG = 'CustomViewerGroundTruth';
 
 cSpanDatasetFolderPath = 'E:\DoctorRelated\20230410重庆VDR数据采集\2023_04_10\Reorganized\0008\HUAWEI_Mate30\dayZeroOClockAlign';
 cSpanDatasetRawDataFileName = 'TrackGroundTruthImu.csv';

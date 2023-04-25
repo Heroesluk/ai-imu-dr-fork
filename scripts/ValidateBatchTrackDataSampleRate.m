@@ -1,4 +1,4 @@
-close all;
+% close all;
 clear;
 addpath(genpath(pwd));
 
@@ -42,24 +42,26 @@ kValidateSensorFileList = horzcat(kMotionSensorAccelerometerFileNameString,...
     kGnssMeasurementFileNameString);
 kValidateSensorFileListLength = length(kValidateSensorFileList);
 
-kPhoneMapNumber = ["GOOGLE_Pixel3" "HUAWEI_Mate30" "HUAWEI_P20"];
-kPhoneMapNumberLength = length(kPhoneMapNumber);
+cPhoneMapNumber = ["GOOGLE_Pixel3" "HUAWEI_Mate30"];
+% cPhoneMapNumber = ["GOOGLE_Pixel3" "HUAWEI_Mate30" "HUAWEI_P20"];
+kPhoneMapNumberLength = length(cPhoneMapNumber);
 
-cDatasetFolderPath = 'C:\DoctorRelated\20230410重庆VDR数据采集';
-cDatasetCollectionDate = '2023_04_15';
+% cDatasetFolderPath = 'C:\DoctorRelated\20230410重庆VDR数据采集';
+cDatasetFolderPath = 'E:\DoctorRelated\20230410重庆VDR数据采集';
+cDatasetCollectionDate = '2023_04_10';
 cReorganizedFolderName = 'Reorganized';
 cReorganizedFolderPath = fullfile(cDatasetFolderPath,cDatasetCollectionDate,cReorganizedFolderName);
 cReorganizedFolderDir = dir(cReorganizedFolderPath);
 cReorganizedFolderDirLength = length(cReorganizedFolderDir);
 cTrackSmartPhoneStatisticFileName = 'TrackSmartPhoneSensorStatistic.csv';
-isTrackSmartPhoneStatisticRecomputed = false;
+isTrackSmartPhoneStatisticRecomputed = true;
 cTrackSmartPhoneStatisticColumn = 11;
 cTrackStatisticRecomputed = false;
 isTrackStatisticRecomputed = isTrackSmartPhoneStatisticRecomputed || cTrackStatisticRecomputed;
-cTrackStatisticFileName = 'TrackStatistic.csv';
+cTrackStatisticFileName = 'TrackSensorSampleRateStatistic.csv';
 cIntedayStatisticRecomputed = false;
 isIntedayStatisticRecomputed = isTrackSmartPhoneStatisticRecomputed || cTrackStatisticRecomputed || cIntedayStatisticRecomputed;
-cIntedayStatisticFileName = 'IntedayStatistic.csv';
+cIntedayStatisticFileName = 'IntedaySampleRateStatistic.csv';
 
 tIntedayStatisticFilePath = fullfile(cReorganizedFolderPath,cIntedayStatisticFileName);
 if ~isfile(tIntedayStatisticFilePath) || isIntedayStatisticRecomputed
@@ -90,7 +92,7 @@ if ~isfile(tIntedayStatisticFilePath) || isIntedayStatisticRecomputed
                                         tTrackSmartPhoneStatisticMatrix(k,1) = k;
                                         if isfile(tSensorFilePath)
                                             tSensorRawData = readmatrix(tSensorFilePath);
-                                            tSensorRawDataLength = length(tSensorRawData);
+                                            tSensorRawDataLength = size(tSensorRawData,1);
                                             if strcmp(tSensorFileName,kGnssLocationFileNameString)
                                                 tSensorRawDataSystemClockSensorEventTime = tSensorRawData(:,1) * MS2S + (tSensorRawData(:,5) - tSensorRawData(:,2)) * NS2S;
                                             elseif strcmp(tSensorFileName,kGnssMeasurementFileNameString)
@@ -101,16 +103,16 @@ if ~isfile(tIntedayStatisticFilePath) || isIntedayStatisticRecomputed
                                             tSensorRawDataHeadTime = tSensorRawDataSystemClockSensorEventTime(1,1);
                                             tSensorRawDataTailTime = tSensorRawDataSystemClockSensorEventTime(tSensorRawDataLength,1);
                                             tSensorRawDataDuration = tSensorRawDataTailTime - tSensorRawDataHeadTime;
-                                            
+
                                             tSensorRawDataSampleInterval = tSensorRawDataSystemClockSensorEventTime(2:tSensorRawDataLength) - tSensorRawDataSystemClockSensorEventTime(1:(tSensorRawDataLength-1));
                                             tSensorRawDataSampleIntervalMax = max(tSensorRawDataSampleInterval);
                                             tSensorRawDataSampleIntervalMin = min(tSensorRawDataSampleInterval);
                                             tSensorRawDataSampleIntervalMean = mean(tSensorRawDataSampleInterval);
-                                            tSensorRawDataSampleRate = floor(1/tSensorRawDataSampleIntervalMean);
-                                            
+                                            tSensorRawDataSampleRate = 1/tSensorRawDataSampleIntervalMean;
+
                                             tSensorFileDir = dir(tSensorFilePath);
                                             tSensorFileBytes = tSensorFileDir.bytes;
-                                            
+
                                             tTrackSmartPhoneStatisticMatrix(k,2) = tSensorRawDataLength;
                                             tTrackSmartPhoneStatisticMatrix(k,3) = tSensorRawDataHeadTime;
                                             tTrackSmartPhoneStatisticMatrix(k,4) = tSensorRawDataTailTime;
@@ -132,7 +134,7 @@ if ~isfile(tIntedayStatisticFilePath) || isIntedayStatisticRecomputed
                                 end
                                 % Tail statistic of track smart phone
                                 tTrackSmartPhoneFolderNameString = string(tTrackSmartPhoneFolderNameChar);
-                                tTrackSmartPhoneNumber = find(kPhoneMapNumber == tTrackSmartPhoneFolderNameString);
+                                tTrackSmartPhoneNumber = find(cPhoneMapNumber == tTrackSmartPhoneFolderNameString);
                                 tTrackSmartPhoneStatisticMatrixSizeRow = size(tTrackSmartPhoneStatisticMatrix,1);
                                 tIntedayTrackSmartPhoneStatisticMatrix = horzcat(ones(tTrackSmartPhoneStatisticMatrixSizeRow,1)*tTrackSmartPhoneNumber,tTrackSmartPhoneStatisticMatrix);
                                 tTrackStatisticMatrix = vertcat(tTrackStatisticMatrix,tIntedayTrackSmartPhoneStatisticMatrix);
@@ -160,9 +162,13 @@ end
 
 % Validate the same smart phone sampling during the day
 for i = 1:kPhoneMapNumberLength
-    tPhoneName = kPhoneMapNumber(i);
+    tPhoneName = cPhoneMapNumber(i);
     tIntedayPhoneStatisticMatrix = tIntedayStatisticMatrix(tIntedayStatisticMatrix(:,2)==i,:);
-    figure();
+    figureNameText = sprintf('%s',tPhoneName);
+    figure('Name',figureNameText);
+    ViridisColerPalette03 = ["#fde725" "#21918c" "#440154"];
+    pPhoneSensorPlotRows = kValidateSensorFileListLength;
+    pPhoneSensorPlotColumns = 1;
     for j = 1:kValidateSensorFileListLength
         tSensorFileName = kValidateSensorFileList(j);
         tSensorFileNameSplit = split(tSensorFileName,".");
@@ -176,5 +182,14 @@ for i = 1:kPhoneMapNumberLength
         dataRateStd = std(dataRateStatistic);
         logMsg = sprintf('Statistic smart phone %s: sensor %s: sample rate mean %.0f Hz, std %.1f Hz, data rate mean %.0f bps, std %.0f bps',tPhoneName,tSensorName,sampleRateMean,sampleRateStd,dataRateMean*8,dataRateStd*8);
         log2terminal('I',TAG,logMsg);
+
+        subplot(pPhoneSensorPlotRows,pPhoneSensorPlotColumns,j);
+        hold on;
+        plot(tIntedayPhoneSensorStatisticMatrix(:,1),sampleRateStatistic,'Color',ViridisColerPalette03(3));
+        xlabel('Track');
+        ylabel('Sample rate (Hz)');
+        titleText = sprintf('%s',tSensorName);
+        title(titleText);
+        hold off;
     end
 end

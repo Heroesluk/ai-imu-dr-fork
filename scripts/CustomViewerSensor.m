@@ -29,22 +29,35 @@ TAG = 'CustomViewerSensor';
 % cDatasetFolderPath = 'C:\Users\QIAN LONG\Downloads\2023_03_01\HUAWEI\0001';
 % cDatasetFolderPath = 'C:\Users\QIAN LONG\Downloads\2023_03_01\PIXEL\0001';
 
+% cDatasetFolderPath = 'C:\Users\QIAN LONG\Downloads\2023_04_18\GOOGLE_Pixel3\0002';
 
-cDatasetFolderPath = 'C:\DoctorRelated\20230410重庆VDR数据采集\2023_04_10\HUAWEI\0003';
+% cDatasetFolderPath = 'C:\DoctorRelated\20230410重庆VDR数据采集\2023_04_10\HUAWEI\0003';
+
+cDatasetFolderPath = 'E:\DoctorRelated\20230410重庆VDR数据采集\2023_04_10\Reorganized\0008\HUAWEI_Mate30';
+
+% cDatasetFolderPath = 'E:\DoctorRelated\20230410重庆VDR数据采集\2023_04_15\Reorganized\0003\GOOGLE_Pixel3';
+% cDatasetFolderPath = 'E:\DoctorRelated\20230410重庆VDR数据采集\2023_04_15\Reorganized\0001\HUAWEI_Mate30';
+
 
 
 kRawFolderName = 'raw';
 
-kMotionSensorAccelerometerUncalibratedFileName = 'MotionSensorAccelerometerUncalibrated.csv';
+kMotionSensorAccelerometerUncalibratedFileName = 'PositionSensorMagneticFieldUncalibrated.csv';
 
 motionSensorAccelerometerUncalibratedFilePath = fullfile(cDatasetFolderPath,kRawFolderName,kMotionSensorAccelerometerUncalibratedFileName);
 motionSensorAccelerometerUncalibratedRawData = readmatrix(motionSensorAccelerometerUncalibratedFilePath);
-N = length(motionSensorAccelerometerUncalibratedRawData);
+if mean(motionSensorAccelerometerUncalibratedRawData(:,3)) == 0
+    motionSensorAccelerometerUncalibratedRawData(:,3) = motionSensorAccelerometerUncalibratedRawData(:,1) * MS2NS - motionSensorAccelerometerUncalibratedRawData(:,2);
+    logMsg = sprintf('Missing GNSS clock reference');
+    log2terminal('W',TAG,logMsg);
+end
+motionSensorAccelerometerUncalibratedData = motionSensorAccelerometerUncalibratedRawData(motionSensorAccelerometerUncalibratedRawData(:,3)~=0,:);
+N = length(motionSensorAccelerometerUncalibratedData);
 
-systemTime = motionSensorAccelerometerUncalibratedRawData(:,1);
-systemClockTime = motionSensorAccelerometerUncalibratedRawData(:,2);
-gpsSystemClockTimeOffset = motionSensorAccelerometerUncalibratedRawData(:,3);
-sensorEventTime = motionSensorAccelerometerUncalibratedRawData(:,4);
+systemTime = motionSensorAccelerometerUncalibratedData(:,1);
+systemClockTime = motionSensorAccelerometerUncalibratedData(:,2);
+gpsSystemClockTimeOffset = motionSensorAccelerometerUncalibratedData(:,3);
+sensorEventTime = motionSensorAccelerometerUncalibratedData(:,4);
 
 [referenceZeroOClockDateTimeFromSystemClock, referenceZeroOClockFromSystemClockOffset] = getSystemCurrentTimeMillisMapZeroOClockTime(systemTime(1,1));
 logMsg = sprintf('System clock based date: %s, time offset %f s', datestr(referenceZeroOClockDateTimeFromSystemClock,'yyyy-mm-dd HH:MM:ss.FFF'),referenceZeroOClockFromSystemClockOffset);
@@ -126,6 +139,14 @@ xlabel('Sample') ;
 ylabel('Millisecond');
 title('System based sample interval');
 
+dSystemTimeMin = min(dSystemTime);
+dSystemTimeMax = max(dSystemTime);
+dSystemTimeMean = mean(dSystemTime);
+dSystemTimeStd = std(dSystemTime);
+dSystemTimeSampleRate = 1 / (dSystemTimeMean*MS2S);
+logMsg = sprintf('System based sample sample rate: %.0f Hz, sample interval: min %d ms, max %d ms, mean %.3f ms, std %.3f ms',dSystemTimeSampleRate,dSystemTimeMin,dSystemTimeMax,dSystemTimeMean,dSystemTimeStd);
+log2terminal('I',TAG,logMsg);
+
 subplot(timeSeriesSubPlotRows,timeSeriesSubPlotColumns,2);
 sensorEventTimeStampMinusElapsedRealtimeNanos = sensorEventTime - systemClockTime;
 actualEventTimeNanosUnixReferenceSystemBase = zSystemTime * MS2NS + sensorEventTimeStampMinusElapsedRealtimeNanos;
@@ -140,6 +161,15 @@ xlabel('Sample') ;
 ylabel('Nanosecond');
 title('System clock based sample interval');
 
+dActualEventTimeNanosSystemBaseMin = min(dActualEventTimeNanosSystemBase);
+dActualEventTimeNanosSystemBaseMax = max(dActualEventTimeNanosSystemBase);
+dActualEventTimeNanosSystemBaseMean = mean(dActualEventTimeNanosSystemBase);
+dActualEventTimeNanosSystemBaseStd = std(dActualEventTimeNanosSystemBase);
+dActualEventTimeNanosSystemBaseSampleRate = 1 / (dActualEventTimeNanosSystemBaseMean*NS2S);
+logMsg = sprintf('System clock based sample rate: %.0f Hz, sample interval: min %.1f ms, max %.1f ms, mean %.3f ms, std %.3f ms',dActualEventTimeNanosSystemBaseSampleRate,dActualEventTimeNanosSystemBaseMin*NS2MS,dActualEventTimeNanosSystemBaseMax*NS2MS,dActualEventTimeNanosSystemBaseMean*NS2MS,dActualEventTimeNanosSystemBaseStd*NS2MS);
+log2terminal('I',TAG,logMsg);
+
+
 subplot(timeSeriesSubPlotRows,timeSeriesSubPlotColumns,3);
 actualEventTimeNanosGpsReferenceGnssClockBase = zBootTimeGpsClock + sensorEventTime;
 plot(actualEventTimeNanosGpsReferenceGnssClockBase);
@@ -152,4 +182,12 @@ plot(dActualEventTimeNanosGpsBase);
 xlabel('Sample') ;
 ylabel('Nanosecond');
 title('GNSS clock based sample interval');
+
+dActualEventTimeNanosGpsBaseMin = min(dActualEventTimeNanosGpsBase);
+dActualEventTimeNanosGpsBaseMax = max(dActualEventTimeNanosGpsBase);
+dActualEventTimeNanosGpsBaseMean = mean(dActualEventTimeNanosGpsBase);
+dActualEventTimeNanosGpsBaseStd = std(dActualEventTimeNanosGpsBase);
+dActualEventTimeNanosGpsBaseSampleRate = 1 / (dActualEventTimeNanosGpsBaseMean*NS2S);
+logMsg = sprintf('GNSS clock based sample rate: %.0f Hz, sample interval: min %.1f ms, max %.1f ms, mean %.3f ms, std %.3f ms',dActualEventTimeNanosGpsBaseSampleRate,dActualEventTimeNanosGpsBaseMin*NS2MS,dActualEventTimeNanosGpsBaseMax*NS2MS,dActualEventTimeNanosGpsBaseMean*NS2MS,dActualEventTimeNanosGpsBaseStd*NS2MS);
+log2terminal('I',TAG,logMsg);
 
