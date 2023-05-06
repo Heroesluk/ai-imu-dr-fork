@@ -1,3 +1,4 @@
+import logging
 import os
 import shutil
 import numpy as np
@@ -10,7 +11,6 @@ from termcolor import cprint
 from navpy import lla2ned
 from collections import OrderedDict
 from dataset import BaseDataset
-from src.utils_time import interpolate_vector_linear
 from utils_torch_filter import TORCHIEKF
 from utils_numpy_filter import NUMPYIEKF as IEKF
 from utils import prepare_data
@@ -118,15 +118,18 @@ class KITTIDataset(BaseDataset):
     def __init__(self, args):
         super(KITTIDataset, self).__init__(args)
 
-        self.datasets_validatation_filter['2011_09_30_drive_0028_extract'] = [11231, 53650]
-        self.datasets_train_filter["2011_10_03_drive_0042_extract"] = [0, None]
-        self.datasets_train_filter["2011_09_30_drive_0018_extract"] = [0, 15000]
-        self.datasets_train_filter["2011_09_30_drive_0020_extract"] = [0, None]
-        self.datasets_train_filter["2011_09_30_drive_0027_extract"] = [0, None]
-        self.datasets_train_filter["2011_09_30_drive_0033_extract"] = [0, None]
-        self.datasets_train_filter["2011_10_03_drive_0027_extract"] = [0, 18000]
-        self.datasets_train_filter["2011_10_03_drive_0034_extract"] = [0, 31000]
-        self.datasets_train_filter["2011_09_30_drive_0034_extract"] = [0, None]
+        # self.datasets_validatation_filter['2011_09_30_drive_0028_extract'] = [11231, 53650]
+        # self.datasets_train_filter["2011_10_03_drive_0042_extract"] = [0, None]
+        # self.datasets_train_filter["2011_09_30_drive_0018_extract"] = [0, 15000]
+        # self.datasets_train_filter["2011_09_30_drive_0020_extract"] = [0, None]
+        # self.datasets_train_filter["2011_09_30_drive_0027_extract"] = [0, None]
+        # self.datasets_train_filter["2011_09_30_drive_0033_extract"] = [0, None]
+        # self.datasets_train_filter["2011_10_03_drive_0027_extract"] = [0, 18000]
+        # self.datasets_train_filter["2011_10_03_drive_0034_extract"] = [0, 31000]
+        # self.datasets_train_filter["2011_09_30_drive_0034_extract"] = [0, None]
+
+        self.datasets_validatation_filter['2023_04_10_drive_0008_phone_huawei_mate30_gt_extract'] = [0, 24800]
+        self.datasets_train_filter["2023_04_10_drive_0008_phone_huawei_mate30_gt_extract"] = [0, 24800]
 
         for dataset_fake in KITTIDataset.datasets_fake:
             if dataset_fake in self.datasets:
@@ -453,9 +456,9 @@ def test_filter(args, dataset):
         # u_resampled[:counts_resampled, :] = u_interpolate[:counts_resampled, :]
         # u_t = torch.from_numpy(u_resampled).double()
 
-        degree_rotated = 90
-        rad_rotated = np.deg2rad(degree_rotated)
-        rotation_matrix_rotated = KITTIDataset.rotz(rad_rotated)
+        # degree_rotated = -180
+        # rad_rotated = np.deg2rad(degree_rotated)
+        # rotation_matrix_rotated = KITTIDataset.rotz(rad_rotated)
 
         # u_rotated = u
         # counts = t.shape[0]
@@ -466,9 +469,10 @@ def test_filter(args, dataset):
         #     u_rotated[j, :3] = u1_rotated.reshape(1, 3)
         #     u_rotated[j, 3:] = u2_rotated.reshape(1, 3)
         # u_t = torch.from_numpy(u_rotated).double()
-        v_rotated = rotation_matrix_rotated.dot(v_gt[0, :].reshape(3, 1))
-        v_gt[0, :] = v_rotated.reshape(1, 3)
-        ang_gt[0, 2] = ang_gt[0, 2] + degree_rotated
+        # v_rotated = rotation_matrix_rotated.dot(v_gt[0, :].reshape(3, 1))
+        # v_gt[0, :] = v_rotated.reshape(1, 3)
+        # ang_gt[0, 2] = ang_gt[0, 2] + degree_rotated
+        # u = u_rotated
 
         # v_gt[0, :] = v_gt[0, :] + [10, 0, 0]
 
@@ -494,33 +498,43 @@ class KITTIArgs():
         path_data_save = "../data"
         path_results = "../results"
         path_temp = "../temp"
+        file_name_loss_data = "delta_p_test_2023_04_10_drive_0008_phone_huawei_mate30_gt_extract.p"
+        file_name_normalize_factors = "normalize_factors_2023_04_10_drive_0008_phone_huawei_mate30_gt_extract"
 
         epochs = 400
         seq_dim = 6000
 
         # training, cross-validation and test dataset
-        cross_validation_sequences = ['2011_09_30_drive_0028_extract']
+        # cross_validation_sequences = ['2011_09_30_drive_0028_extract']
+
+        cross_validation_sequences = ['2023_04_10_drive_0008_phone_huawei_mate30_gt_extract']
 
         # test_sequences = ['2011_09_26_drive_0009_extract']
         # test_sequences = ['2011_09_26_drive_0015_extract']
         # test_sequences = ['2011_09_30_drive_0027_extract']
-        test_sequences = ['2011_09_30_drive_0028_extract']
+        # test_sequences = ['2011_09_30_drive_0028_extract']
 
         # test_sequences = ['2021_01_14_drive_0001_extract']
         # test_sequences = ['2022_03_15_drive_0001_extract']
+
+        # test_sequences = ['2023_04_10_drive_0001_phone_huawei_mate30_extract']
+        test_sequences = ['2023_04_10_drive_0008_phone_huawei_mate30_gt_extract']
 
         continue_training = True
 
         # choose what to do
         read_data = 0
         train_filter = 0
-        test_filter = 0
-        results_filter = 1
+        test_filter = 1
+        results_filter = 0
         dataset_class = KITTIDataset
         parameter_class = KITTIParameters
 
 
 if __name__ == '__main__':
+
+    logging.info('Test')
+
     args = KITTIArgs()
     dataset = KITTIDataset(args)
     launch(KITTIArgs)

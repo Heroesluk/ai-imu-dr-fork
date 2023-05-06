@@ -19,7 +19,7 @@ def results_filter(args, dataset):
 
         print("\nResults for: " + dataset_name)
 
-        Rot, v, p, b_omega, b_acc, Rot_c_i, t_c_i,  = dataset.get_estimates(
+        Rot, v, p, b_omega, b_acc, Rot_c_i, t_c_i, measurements_covs = dataset.get_estimates(
             dataset_name)
 
         # get data

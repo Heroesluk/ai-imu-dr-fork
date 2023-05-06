@@ -51,6 +51,7 @@ class BaseDataset(Dataset):
         # factors for normalizing inputs
         self.normalize_factors = None
         self.get_datasets()
+        self.set_file_normalize_factor_name(args.file_name_normalize_factors)
         self.set_normalize_factors()
 
     def __getitem__(self, i):
@@ -183,5 +184,8 @@ class BaseDataset(Dataset):
         t_c_i = mondict['t_c_i']
         measurements_covs = mondict['measurements_covs']
         return Rot, v, p , b_omega, b_acc, Rot_c_i, t_c_i, measurements_covs
+
+    def set_file_normalize_factor_name(self, name):
+        self.file_normalize_factor = name
 
 

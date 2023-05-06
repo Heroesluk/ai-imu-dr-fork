@@ -98,7 +98,7 @@ def prepare_filter(args, dataset):
 
 
 def prepare_loss_data(args, dataset):
-    file_delta_p = os.path.join(args.path_temp, 'delta_p.p')
+    file_delta_p = os.path.join(args.path_temp, args.file_name_loss_data)
     if os.path.isfile(file_delta_p):
         mondict = dataset.load(file_delta_p)
         dataset.list_rpe = mondict['list_rpe']
@@ -179,7 +179,7 @@ def train_loop(args, dataset, epoch, iekf, optimizer, seq_dim):
             log_info('train_loop', log_str)
 
     if loss_train == 0: 
-        return 
+        return loss_train
     loss_train.backward()  # loss_train.cuda().backward()  
     g_norm = torch.nn.utils.clip_grad_norm_(iekf.parameters(), max_grad_norm)
     if np.isnan(g_norm) or g_norm > 3*max_grad_norm:

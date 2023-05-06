@@ -2,13 +2,10 @@
 
 import argparse
 import os
-import sys
 from os import path as osp
 
-import numpy as np
-import pandas
 
-from src.dataset_custom import CustomDataset
+from src.dataset_chongqing import CustomChongQingDataset
 from src.utils_file import pickle_dump
 
 GENERATED_AIIMUDR_DATASET_FOLDER_NAME = 'DATASET_AIIMUDR'
@@ -61,6 +58,6 @@ if __name__ == '__main__':
         if not osp.isdir(generated_folder_path):
             os.makedirs(generated_folder_path)
 
-        aiimudr_data = CustomDataset.parse_aiimudr_dataset(dataset)
+        aiimudr_data = CustomChongQingDataset.parse_aiimudr_dataset(dataset)
 
         pickle_dump(aiimudr_data, generated_folder_path, aiimudr_data['name'])
