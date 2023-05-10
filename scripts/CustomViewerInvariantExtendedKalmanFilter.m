@@ -8,10 +8,10 @@ SCRIPT_MODE = 0;
 
 TAG = 'CustomViewerInvariantExtendedKalmanFilter';
 
-% cSpanDatasetFolderPath = 'C:\Users\QIAN LONG\Downloads\20230301\车载数据';
-% cSpanDatasetResampledDataFileName = 'ResampledInsData.mat';
-% cSpanDatasetResampledDataFilePath = fullfile(cSpanDatasetFolderPath,'SPAN',cSpanDatasetResampledDataFileName);
-% load(cSpanDatasetResampledDataFilePath);
+cSpanDatasetFolderPath = 'C:\Users\QIAN LONG\Downloads\20230301\车载数据';
+cSpanDatasetResampledDataFileName = 'ResampledInsData.mat';
+cSpanDatasetResampledDataFilePath = fullfile(cSpanDatasetFolderPath,'SPAN',cSpanDatasetResampledDataFileName);
+load(cSpanDatasetResampledDataFilePath);
 
 cTrainDatasetFolderPath = 'E:\DoctorRelated\20230410重庆VDR数据采集\2023_04_10\Reorganized\0008\HUAWEI_Mate30\dayZeroOClockAlign';
 cTrainFileName = 'TrackSynchronized.mat';
@@ -33,8 +33,10 @@ if ~isfile(cTrainFilePath)
         groundTruthPosePosition = trainRawData(i,23:25)';
         trackSynchronizedData{i,2} = SE3(groundTruthPoseRotationMatrix,groundTruthPosePosition).double;
         trackSynchronizedData{i,3} = trainRawData(i,26:28);
-        trackSynchronizedData{i,4} = trainRawData(i,8:10);
+        trackSynchronizedData{i,4} = trainRawData(i,2:4);
         trackSynchronizedData{i,5} = trainRawData(i,5:7);
+%         trackSynchronizedData{i,4} = trainRawData(i,8:10);
+%         trackSynchronizedData{i,5} = trainRawData(i,11:13);
     end
 
     save(cTrainFilePath,"trackSynchronizedData");
@@ -43,13 +45,38 @@ else
 end
 
 spanResampledData = trackSynchronizedData;
+cCarCoordinateType = 'LFU';
+
+
+
+% cOxtslitePoseMatFilePath = 'E:\GitHubRepositories\KITTI\raw_data\2011_09_30\2011_09_30_drive_0027_extract\oxts\pose.mat';
+% load(cOxtslitePoseMatFilePath);
+% spanResampledData = tOxtslitePose;
+% cCarCoordinateType = 'FRU';
+
+spanResampledDataSize = size(spanResampledData,1);
+plotIndex = 1:spanResampledDataSize;
+measurementGyroscope = cell2mat(spanResampledData(plotIndex,4));
+measurementAccelerometer = cell2mat(spanResampledData(plotIndex,5));
+measurement = horzcat(measurementGyroscope,measurementAccelerometer);
+
+headBiasEstimationIndex = 1:7000;
+headBiasEstimation = mean(measurement(headBiasEstimationIndex,:),1);
+tailBiasEstimationIndex = 24200:spanResampledDataSize;
+tailBiasEstimation = mean(measurement(tailBiasEstimationIndex,:),1);
+headtailBiasEstimation = vertcat(headBiasEstimation,tailBiasEstimation);
+
+% spanResampledData = spanResampledData(1:spanResampledDataSize,:);
+spanResampledData = spanResampledData(7000:spanResampledDataSize,:);
+% spanResampledData = spanResampledData(6800:spanResampledDataSize,:);
 spanResampledDataSize = size(spanResampledData,1);
 
 % plotSEPose(spanResampledData(:,2),100);
 % plotSEPose(spanResampledData(3000:6000,2));
 
-% plotIndex = 1:spanResampledDataSize;
-% plotSESubscript4Bracket3Pose(spanResampledData(plotIndex,1),spanResampledData(plotIndex,2),spanResampledData(plotIndex,3),spanResampledData(plotIndex,4),spanResampledData(plotIndex,5));
+plotIndex = 1:spanResampledDataSize;
+plotSEPose(spanResampledData(plotIndex,2),100);
+plotSESubscript4Bracket3Pose(spanResampledData(plotIndex,1),spanResampledData(plotIndex,2),spanResampledData(plotIndex,3),spanResampledData(plotIndex,4),spanResampledData(plotIndex,5));
 
 
 GRAVITY = [0 0 -9.8]';
@@ -93,9 +120,15 @@ filterIntermediateState{1,FIS_SOBRACKET3_FROM_IMU_TO_NAV_SAVE_INDEX} = spanResam
 filterIntermediateState{1,FIS_VELOCITY_IN_NAV_SAVE_INDEX} = spanResampledData{1,3};
 filterIntermediateState{1,FIS_POSITION_INDEX} = (spanResampledData{1,2}(1:3,4))';
 filterIntermediateState{1,FIS_ANGULAR_SPEED_SAVE_INDEX} = spanResampledData{1,4};
-filterIntermediateState{1,FIS_ANGULAR_SPEED_BIAS_SAVE_INDEX} = zeros(1,3);
+
+% filterIntermediateState{1,FIS_ANGULAR_SPEED_BIAS_SAVE_INDEX} = zeros(1,3);
+filterIntermediateState{1,FIS_ANGULAR_SPEED_BIAS_SAVE_INDEX} = (headBiasEstimation(1:3));
+
 filterIntermediateState{1,FIS_ACCELERATION_SAVE_INDEX} = spanResampledData{1,5};
-filterIntermediateState{1,FIS_ACCELERATION_BIAS_SAVE_INDEX} = zeros(1,3);
+
+% filterIntermediateState{1,FIS_ACCELERATION_BIAS_SAVE_INDEX} = zeros(1,3);
+filterIntermediateState{1,FIS_ACCELERATION_BIAS_SAVE_INDEX} = (headBiasEstimation(4:6) + GRAVITY');
+
 filterIntermediateState{1,FIS_SOBRACKET3_FROM_IMU_TO_CAR_SAVE_INDEX} = ROTATION_FROM_IMU_TO_CAR;
 filterIntermediateState{1,FIS_TRANSLATION_FROM_IMU_TO_CAR_SAVE_INDEX} = [0 0 0];
 
@@ -123,12 +156,18 @@ filterIntermediateState{1,FIS_P_SAVE_INDEX} = filterInitP;
 
 filterInitQ = zeros(18);
 filterQSize = size(filterInitQ,1);
+% noiseAngularSpeedCovariance = 1.4e-2;
+% noiseAccelerometerCovariance = 3e-2;
+% noiseAngularSpeedBiasCovariance = 1e-4;
+% noiseAccelerometerBiasCovariance = 1e-3;
+% noiseSOBracket3FromImuToCar = 1e-4;
+% noiseTransitionFromImuToCar = 1e-4;
 noiseAngularSpeedCovariance = 1.4e-2;
 noiseAccelerometerCovariance = 3e-2;
 noiseAngularSpeedBiasCovariance = 1e-4;
 noiseAccelerometerBiasCovariance = 1e-3;
-noiseSOBracket3FromImuToCar = 1e-4;
-noiseTransitionFromImuToCar = 1e-4;
+noiseSOBracket3FromImuToCar = 1e-3;
+noiseTransitionFromImuToCar = 1e-3;
 filterInitQ(1:3,1:3) = eye(3) * noiseAngularSpeedCovariance;
 filterInitQ(4:6,4:6) = eye(3) * noiseAccelerometerCovariance;
 filterInitQ(7:9,7:9) = eye(3) * noiseAngularSpeedBiasCovariance;
@@ -139,15 +178,41 @@ filterIntermediateState{1,FIS_Q_SAVE_INDEX} = filterInitQ;
 
 measurementCovarianceR = zeros(2);
 measurementCovarianceR(1,1) = 2;
-measurementCovarianceR(2,2) = 8;
+measurementCovarianceR(2,2) = 21;
+% measurementCovarianceR(1,1) = 1e-1;
+% measurementCovarianceR(2,2) = 1e-1;
 
 if SCRIPT_MODE == 0
 
     figure;
     hold on;
     grid on;
-    axisLim = 10;
-    axis([-axisLim axisLim -axisLim axisLim -5 5]);
+    transitionStatistic = zeros(spanResampledDataSize,3);
+    for i =1:spanResampledDataSize
+        transitionStatistic(i,1:3) = (spanResampledData{i,2}(1:3,4))';
+    end
+    axisXLimMin = min(transitionStatistic(:,1));
+    axisXLimMax = max(transitionStatistic(:,1));
+    axisXLimDelta = axisXLimMax - axisXLimMin;
+    axisYLimMin = min(transitionStatistic(:,2));
+    axisYLimMax = max(transitionStatistic(:,2));
+    axisYLimDelta = axisYLimMax - axisYLimMin;
+    axisZLimMin = min(transitionStatistic(:,3));
+    axisZLimMax = max(transitionStatistic(:,3));
+    axisZLimDelta = axisZLimMax - axisZLimMin;
+    if axisXLimDelta >= axisYLimDelta
+        compensationH = axisXLimDelta - axisYLimDelta;
+        compensationHHalf = compensationH * 0.5;
+        compensationV = axisXLimDelta - axisZLimDelta;
+        compensationVHalf = compensationV * 0.5;
+        axis([axisXLimMin axisXLimMax axisYLimMin-compensationHHalf axisYLimMax+compensationHHalf axisZLimMin-compensationVHalf axisZLimMax+compensationVHalf]);
+    else
+        compensationH = axisYLimDelta - axisXLimDelta;
+        compensationHHalf = compensationH * 0.5;
+        compensationV = axisYLimDelta - axisZLimDelta;
+        compensationVHalf = compensationV * 0.5;
+        axis([axisXLimMin-compensationHHalf axisXLimMax+compensationHHalf axisYLimMin axisYLimMax axisZLimMin-compensationVHalf axisZLimMax+compensationVHalf]);
+    end
     daspect([1 1 1]);
     xlabel('x');
     ylabel('y');
@@ -155,27 +220,39 @@ if SCRIPT_MODE == 0
     pAxisLineWidth = 1;
 
     % 吉利 新豪越
-    cCarCoordinateAxisDisplayTimeInterval = 2;
+    cCarCoordinateAxisDisplayTimeInterval = 1;
     cCarCoordinateAxisSampleCountInterval = cCarCoordinateAxisDisplayTimeInterval * cSampleRate;
-    pCarCoordinateAxisXLineLength = 1.900;
-    pCarCoordinateAxisYLineLength = 4.835;
-    pCarCoordinateAxisZLineLength = 1.780;
-    pCarCoordinateAxisArrowWidth = 0.2;
+    pCarXLength = 1.900;
+    pCarYLength = 4.835;
+    pCarZLength = 1.780;
+    pCarCoordinateAxisScale = 0.5;
+    pCarCoordinateAxisXLineLength = pCarXLength * pCarCoordinateAxisScale;
+    pCarCoordinateAxisYLineLength = pCarYLength * pCarCoordinateAxisScale;
+    pCarCoordinateAxisZLineLength = pCarZLength * pCarCoordinateAxisScale;
+    pCarCoordinateAxisArrowWidth = min([pCarCoordinateAxisXLineLength pCarCoordinateAxisYLineLength pCarCoordinateAxisZLineLength]) * 1e-1;
+
+    % KITTI
+%     cCarCoordinateAxisDisplayTimeInterval = 1;
+%     cCarCoordinateAxisSampleCountInterval = cCarCoordinateAxisDisplayTimeInterval * cSampleRate;
+%     pCarCoordinateAxisXLineLength = 4.835;
+%     pCarCoordinateAxisYLineLength = 1.900;
+%     pCarCoordinateAxisZLineLength = 1.780;
+%     pCarCoordinateAxisArrowWidth = 0.05;
 
     % Config for car coordinate
     cCarStateVelocityDisplayTimeInterval = 0.5;
     cCarStateVelocitySampleCountInterval = cCarStateVelocityDisplayTimeInterval * cSampleRate;
+    pCarStateVelocityLineLengthRatio = 0.5;
     pCarStateVelocityLineWidth = 1;
-    pCarStateVelocityLineLengthRatio = 1;
 
     pImuCoordinateAxisLineLength = 0.5;
     pImuCoordinateAxisArrowWidth = 0.1;
 
-    pImuStateAccelerometerLineWidth = 2;
+    pImuStateAccelerometerLineLength = 2;
+    pImuStateAccelerometerLineWidth = 3;
 
 
 
-    al = 2;
 end
 
 
@@ -249,37 +326,58 @@ for i =2:spanResampledDataSize
     propagateStateCovariance = propagateStateCovarianceTransitionPhi * filterState8StateCovariance * propagateStateCovarianceTransitionPhi' ...
         + propagateNoiseCovariance;
 
+%     filterIntermediateState{i,FIS_SEBRACKET3_SAVE_INDEX} = SE3(propagateState1RotationEstimation,propagateState3TranslationEstimation).double;
+%     filterIntermediateState{i,FIS_SOBRACKET3_FROM_IMU_TO_NAV_SAVE_INDEX} = propagateState1RotationEstimation;
+%     filterIntermediateState{i,FIS_VELOCITY_IN_NAV_SAVE_INDEX} = (propagateState2VelocityEstimation)';
+%     filterIntermediateState{i,FIS_POSITION_INDEX} = (propagateState3TranslationEstimation)';
+%     filterIntermediateState{i,FIS_ANGULAR_SPEED_BIAS_SAVE_INDEX} = (propagateState4AngularSpeedBias)';
+%     filterIntermediateState{i,FIS_ACCELERATION_BIAS_SAVE_INDEX} = (propagateState5AccelerationBias)';
+%     filterIntermediateState{i,FIS_SOBRACKET3_FROM_IMU_TO_CAR_SAVE_INDEX} = propagateState6Rotation;
+%     filterIntermediateState{i,FIS_TRANSLATION_FROM_IMU_TO_CAR_SAVE_INDEX} = (propagateState7Transition)';
+% 
+%     filterIntermediateState{i,FIS_ANGULAR_SPEED_SAVE_INDEX} = spanResampledData{i,4};
+%     filterIntermediateState{i,FIS_ACCELERATION_SAVE_INDEX} = spanResampledData{i,5};
+% 
+%     filterIntermediateState{i,FIS_P_SAVE_INDEX} = propagateStateCovariance;
+%     filterIntermediateState{i,FIS_Q_SAVE_INDEX} = filterInitQ;
+
     %%% Update
-    updateStateSOBracket3FromCarToNav = propagateState1RotationEstimation * propagateState6Rotation';
+    updateStateSOBracket3FromCarToNav = propagateState1RotationEstimation * propagateState6Rotation;
     updateStateSOBracket3FromNavToCar = updateStateSOBracket3FromCarToNav';
     updateStateVelocityInImu = propagateState1RotationEstimation' * propagateState2VelocityEstimation;
     updateStateVelocityInCar = updateStateSOBracket3FromCarToNav' * propagateState2VelocityEstimation;
-    updateStateVelocityPlusInCar = updateStateVelocityInCar - skew(propagateState7Transition') * propagateState1AngulerSpeed;
+    updateStateVelocityPlusInCar = updateStateVelocityInCar + skew(propagateState7Transition') * propagateState1AngulerSpeed;
     updateStateSkewAngularSpeedInImu = skew(propagateState1AngulerSpeed);
     updateStateJacobianB = propagateState6Rotation' * skew(updateStateVelocityInImu);
-    updateStateJacobianC = skew(propagateState7Transition');
+    updateStateJacobianC = -skew(propagateState7Transition');
 
     updateStateMeasurementTransitionH = zeros(2,filterPSize);
-    updateStateMeasurementTransitionH(1:2,4:6) = updateStateSOBracket3FromNavToCar([1 3],:);
-    updateStateMeasurementTransitionH(1:2,10:12) = updateStateJacobianB([1 3],:);
-    updateStateMeasurementTransitionH(1:2,16:18) = updateStateJacobianC([1 3],:);
-    updateStateMeasurementTransitionH(1:2,19:21) = - updateStateSkewAngularSpeedInImu([1 3],:);
+    if strcmp(cCarCoordinateType,'LFU')
+        measurementIndex = [1 3];
+    else
+        measurementIndex = [2 3];
+    end
+    
+    updateStateMeasurementTransitionH(1:2,4:6) = updateStateSOBracket3FromNavToCar(measurementIndex,:);
+    updateStateMeasurementTransitionH(1:2,10:12) = updateStateJacobianB(measurementIndex,:);
+    updateStateMeasurementTransitionH(1:2,16:18) = updateStateJacobianC(measurementIndex,:);
+    updateStateMeasurementTransitionH(1:2,19:21) = - updateStateSkewAngularSpeedInImu(measurementIndex,:);
 
     updateStateMeasurementTransitionS = updateStateMeasurementTransitionH * propagateStateCovariance * updateStateMeasurementTransitionH' + measurementCovarianceR;
     updateStateMeasurementTransitionK = (linsolve(updateStateMeasurementTransitionS,(propagateStateCovariance * updateStateMeasurementTransitionH')'))';
 
-    updateStateMeasurementTransitionDeltaX = updateStateMeasurementTransitionK * (- updateStateVelocityInCar([1 3],:));
+    updateStateMeasurementTransitionDeltaX = updateStateMeasurementTransitionK * (- updateStateVelocityPlusInCar(measurementIndex,:));
     updateStateSESubscript4Bracket3RotationElement = updateStateMeasurementTransitionDeltaX(1:3);
     updateStateSESubscript4Bracket3RotationElementNorm = norm(updateStateSESubscript4Bracket3RotationElement);
     updateStateSESubscript4Bracket3RotationElementAxis = updateStateSESubscript4Bracket3RotationElement / updateStateSESubscript4Bracket3RotationElementNorm;
     updateStateSESubscript4Bracket3RotationElementSkewAxis = skew(updateStateSESubscript4Bracket3RotationElementAxis);
     updateStateSESubscript4Bracket3RotationElementJacobian = (sin(updateStateSESubscript4Bracket3RotationElementNorm) / updateStateSESubscript4Bracket3RotationElementNorm) * eye(3) ...
-        + (1 - sin(updateStateSESubscript4Bracket3RotationElementNorm) / updateStateSESubscript4Bracket3RotationElementNorm) * (updateStateSESubscript4Bracket3RotationElement * updateStateSESubscript4Bracket3RotationElement') ...
-        + (1 - cos(updateStateSESubscript4Bracket3RotationElementNorm) / updateStateSESubscript4Bracket3RotationElementNorm) * updateStateSESubscript4Bracket3RotationElementSkewAxis;
+        + (1 - sin(updateStateSESubscript4Bracket3RotationElementNorm) / updateStateSESubscript4Bracket3RotationElementNorm) * (updateStateSESubscript4Bracket3RotationElementAxis * updateStateSESubscript4Bracket3RotationElementAxis') ...
+        + ((1 - cos(updateStateSESubscript4Bracket3RotationElementNorm)) / updateStateSESubscript4Bracket3RotationElementNorm) * updateStateSESubscript4Bracket3RotationElementSkewAxis;
     
     updateStateSESubscript4Bracket3DeltaRotation = cos(updateStateSESubscript4Bracket3RotationElementNorm) * eye(3) ...
-        + (1 - sin(updateStateSESubscript4Bracket3RotationElementNorm)) * (updateStateSESubscript4Bracket3RotationElement * updateStateSESubscript4Bracket3RotationElement') ...
-        + (1 - cos(updateStateSESubscript4Bracket3RotationElementNorm) / updateStateSESubscript4Bracket3RotationElementNorm) * updateStateSESubscript4Bracket3RotationElementSkewAxis;
+        + (1 - cos(updateStateSESubscript4Bracket3RotationElementNorm)) * (updateStateSESubscript4Bracket3RotationElementAxis * updateStateSESubscript4Bracket3RotationElementAxis') ...
+        + sin(updateStateSESubscript4Bracket3RotationElementNorm) * updateStateSESubscript4Bracket3RotationElementSkewAxis;
     updateStateSESubscript4Bracket3OtherElement = zeros(3,2);
     updateStateSESubscript4Bracket3OtherElement(1:3,1) = updateStateMeasurementTransitionDeltaX(4:6);
     updateStateSESubscript4Bracket3OtherElement(1:3,2) = updateStateMeasurementTransitionDeltaX(7:9);
@@ -302,10 +400,16 @@ for i =2:spanResampledDataSize
         + updateStateMeasurementTransitionK * measurementCovarianceR * updateStateMeasurementTransitionK';
     updateState8StateCovariance = (updateStateCovariance + updateStateCovariance') * 0.5;
 
-
-    [nGroundTruthRotationAng1, nGroundTruthRotationAng2, nGroundTruthRotationAng3] = dcm2angle(propagateState1RotationEstimation1,'ZXY');
-    nGroundTruthRotationAng = rad2deg([nGroundTruthRotationAng1, nGroundTruthRotationAng2, nGroundTruthRotationAng3]);
-
+    if strcmp(cCarCoordinateType,'LFU')
+        dcm2angleScalar = 'ZXY';
+        nGroundTruthSESubscript2Bracket3 = spanResampledData{i,2};
+        [nGroundTruthRotationAng1, nGroundTruthRotationAng2, nGroundTruthRotationAng3] = dcm2angle(nGroundTruthSESubscript2Bracket3(1:3,1:3)',dcm2angleScalar);
+        nGroundTruthRotationAng = rad2deg([nGroundTruthRotationAng1, nGroundTruthRotationAng2, nGroundTruthRotationAng3]);
+        [updateState1RotationAng1, updateState1RotationAng2, updateState1RotationAng3] = dcm2angle(updateState1Rotation',dcm2angleScalar);
+        updateState1RotationAng = rad2deg([updateState1RotationAng1, updateState1RotationAng2, updateState1RotationAng3]);
+    else
+        measurementIndex = [2 3];
+    end
 
     filterIntermediateState{i,FIS_SEBRACKET3_SAVE_INDEX} = SE3(updateState1Rotation,updateState3Translation).double;
     filterIntermediateState{i,FIS_SOBRACKET3_FROM_IMU_TO_NAV_SAVE_INDEX} = updateState1Rotation;
@@ -329,18 +433,18 @@ for i =2:spanResampledDataSize
         pSEBracket3FromC2N(1:3,1:3) = pSEBracket3FromS2N(1:3,1:3) * propagateState6Rotation';
 
 
-        if mod(i,cCarCoordinateAxisSampleCountInterval) == 2
+        if i == 2 || mod(i,cCarCoordinateAxisSampleCountInterval) == 0
             carCoordinateAxisInCarCoordinateSystem = [0 0 0 1; pCarCoordinateAxisXLineLength 0 0 1; 0 0 0 1; 0 pCarCoordinateAxisYLineLength 0 1; 0 0 0 1; 0 0 pCarCoordinateAxisZLineLength 1]';
             carCoordinateAxisInNavCoordinateSystem = pSEBracket3FromC2N * carCoordinateAxisInCarCoordinateSystem;
             pCarCoordinateAxisInNavCoordinateSystem = carCoordinateAxisInNavCoordinateSystem';
             arrow3(pCarCoordinateAxisInNavCoordinateSystem(1,1:3),pCarCoordinateAxisInNavCoordinateSystem(2,1:3),'r-0.1',pCarCoordinateAxisArrowWidth);
             arrow3(pCarCoordinateAxisInNavCoordinateSystem(3,1:3),pCarCoordinateAxisInNavCoordinateSystem(4,1:3),'g-0.1',pCarCoordinateAxisArrowWidth);
             arrow3(pCarCoordinateAxisInNavCoordinateSystem(5,1:3),pCarCoordinateAxisInNavCoordinateSystem(6,1:3),'b-0.1',pCarCoordinateAxisArrowWidth);
-            logMsg = sprintf('%d',i);
+            logMsg = sprintf('Sample: %d, plot car coordinate axis',i);
             log2terminal('D',TAG,logMsg);
         end
 
-        if mod(i,cCarStateVelocitySampleCountInterval) == 2
+        if i == 2 || mod(i,cCarStateVelocitySampleCountInterval) == 0
             pState2Velocity = filterState2Velocity;
             vc = pSEBracket3FromC2N(1:3,1:3)' * pState2Velocity;
             % vc = vc ./ max(abs(vc));
@@ -349,9 +453,42 @@ for i =2:spanResampledDataSize
             plot3(B(1,1:2),B(2,1:2),B(3,1:2),'Color',ViridisColerPalette06(1),'LineStyle','-','LineWidth',pCarStateVelocityLineWidth);
             plot3(B(1,3:4),B(2,3:4),B(3,3:4),'Color',ViridisColerPalette06(3),'LineStyle','-','LineWidth',pCarStateVelocityLineWidth);
             plot3(B(1,5:6),B(2,5:6),B(3,5:6),'Color',ViridisColerPalette06(5),'LineStyle','-','LineWidth',pCarStateVelocityLineWidth);
-            logMsg = sprintf('%d',i);
+            logMsg = sprintf('Sample: %d, plot car velocity',i);
+            log2terminal('D',TAG,logMsg);
+
+            pMeasurementAccelerometer = spanResampledData{i,5};
+            A = [0 0 0 1; pImuStateAccelerometerLineLength*pMeasurementAccelerometer(1) 0 0 1; 0 0 0 1; 0 pImuStateAccelerometerLineLength*pMeasurementAccelerometer(2) 0 1; 0 0 0 1; 0 0 pImuStateAccelerometerLineLength*pMeasurementAccelerometer(3) 1]';
+            B = pSEBracket3FromS2N * A;
+            plot3(B(1,1:2),B(2,1:2),B(3,1:2),'Color',ViridisColerPalette06(1),'LineStyle','--','LineWidth',pImuStateAccelerometerLineWidth);
+            plot3(B(1,3:4),B(2,3:4),B(3,3:4),'Color',ViridisColerPalette06(3),'LineStyle','--','LineWidth',pImuStateAccelerometerLineWidth);
+            plot3(B(1,5:6),B(2,5:6),B(3,5:6),'Color',ViridisColerPalette06(5),'LineStyle','--','LineWidth',pImuStateAccelerometerLineWidth);
+            logMsg = sprintf('Sample: %d, plot car velocity',i);
             log2terminal('D',TAG,logMsg);
         end
+
+%         if i == 2 || mod(i,cCarCoordinateAxisSampleCountInterval) == 0
+%             carCoordinateAxisInCarCoordinateSystem = [0 0 0 1; pCarCoordinateAxisXLineLength 0 0 1; 0 0 0 1; 0 pCarCoordinateAxisYLineLength 0 1; 0 0 0 1; 0 0 pCarCoordinateAxisZLineLength 1]';
+%             carCoordinateAxisInNavCoordinateSystem = nGroundTruthSESubscript2Bracket3 * carCoordinateAxisInCarCoordinateSystem;
+%             pCarCoordinateAxisInNavCoordinateSystem = carCoordinateAxisInNavCoordinateSystem';
+%             arrow3(pCarCoordinateAxisInNavCoordinateSystem(1,1:3),pCarCoordinateAxisInNavCoordinateSystem(2,1:3),'r-0.1',pCarCoordinateAxisArrowWidth);
+%             arrow3(pCarCoordinateAxisInNavCoordinateSystem(3,1:3),pCarCoordinateAxisInNavCoordinateSystem(4,1:3),'g-0.1',pCarCoordinateAxisArrowWidth);
+%             arrow3(pCarCoordinateAxisInNavCoordinateSystem(5,1:3),pCarCoordinateAxisInNavCoordinateSystem(6,1:3),'b-0.1',pCarCoordinateAxisArrowWidth);
+%             logMsg = sprintf('Sample: %d, plot car coordinate axis',i);
+%             log2terminal('D',TAG,logMsg);
+%         end
+% 
+%         if i == 2 || mod(i,cCarStateVelocitySampleCountInterval) == 0
+%             pState2Velocity = spanResampledData{i,3}';
+%             vc = nGroundTruthSESubscript2Bracket3(1:3,1:3)' * pState2Velocity;
+%             % vc = vc ./ max(abs(vc));
+%             A = [0 0 0 1; pCarStateVelocityLineLengthRatio*vc(1) 0 0 1; 0 0 0 1; 0 pCarStateVelocityLineLengthRatio*vc(2) 0 1; 0 0 0 1; 0 0 pCarStateVelocityLineLengthRatio*vc(3) 1]';
+%             B = nGroundTruthSESubscript2Bracket3 * A;
+%             plot3(B(1,1:2),B(2,1:2),B(3,1:2),'Color',ViridisColerPalette06(1),'LineStyle','-','LineWidth',pCarStateVelocityLineWidth);
+%             plot3(B(1,3:4),B(2,3:4),B(3,3:4),'Color',ViridisColerPalette06(3),'LineStyle','-','LineWidth',pCarStateVelocityLineWidth);
+%             plot3(B(1,5:6),B(2,5:6),B(3,5:6),'Color',ViridisColerPalette06(5),'LineStyle','-','LineWidth',pCarStateVelocityLineWidth);
+%             logMsg = sprintf('Sample: %d, plot car velocity',i);
+%             log2terminal('D',TAG,logMsg);
+%         end
 
         %         as = observationAcceleration;
         %         pAccelerationInImuCoordinateSystem = as + GRAVITY;
@@ -373,7 +510,7 @@ for i =2:spanResampledDataSize
         nGroundTruthTranslation = spanResampledData{i,2}(1:3,4);
         nGroundTruthRotation = spanResampledData{i,2}(1:3,1:3);
 
-        if i == 2
+        if i == 5200
             fprintf('%d', i);
         end
     end

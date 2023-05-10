@@ -511,6 +511,7 @@ class KITTIArgs():
 
         # test_sequences = ['2011_09_26_drive_0009_extract']
         # test_sequences = ['2011_09_26_drive_0015_extract']
+        test_sequences = ['2011_09_30_drive_0016_extract']
         # test_sequences = ['2011_09_30_drive_0027_extract']
         # test_sequences = ['2011_09_30_drive_0028_extract']
 
@@ -518,7 +519,7 @@ class KITTIArgs():
         # test_sequences = ['2022_03_15_drive_0001_extract']
 
         # test_sequences = ['2023_04_10_drive_0001_phone_huawei_mate30_extract']
-        test_sequences = ['2023_04_10_drive_0008_phone_huawei_mate30_gt_extract']
+        # test_sequences = ['2023_04_10_drive_0008_phone_huawei_mate30_gt_extract']
 
         continue_training = True
 

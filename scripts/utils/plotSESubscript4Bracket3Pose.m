@@ -28,15 +28,26 @@ pSAcceleration = pSAcceleration + GRAVITY';
 pAcceleration = sqrt(sum(pSAcceleration.^2,2));
 pMaxAcceleration = max(pAcceleration);
 
+% figure;
+% hold on;
+% plot(pSAcceleration);
+% hold off;
+% 
+% figure;
+% hold on;
+% plot(poseSGyroscope);
+% hold off;
+
 figure;
 hold on;
 grid on;
 axis equal;
-vl = 1; % coordinate axis length
+vl = 0.1; % coordinate axis length
 al = 20/pMaxAcceleration;
 % A = [0 0 0 1; l 0 0 1; 0 0 0 1; 0 l 0 1; 0 0 0 1; 0 0 l 1]';
 for i=1:50:pTimeSize
   rotationFromS2N = poseSE{i,1};
+
   rotationFromN2S = rotationFromS2N;
   rotationFromN2S(1:3,1:3) = (rotationFromS2N(1:3,1:3))';
   vn = pNVelocity(i,:);
@@ -47,13 +58,13 @@ for i=1:50:pTimeSize
   plot3(B(1,3:4),B(2,3:4),B(3,3:4),'Color',ViridisColerPalette06(3),'LineStyle','-','LineWidth',3); % y: green
   plot3(B(1,5:6),B(2,5:6),B(3,5:6),'Color',ViridisColerPalette06(5),'LineStyle','-','LineWidth',3); % z: blue
 
-%   as = pSAcceleration(i,:);
-%   ac = ROTATION_FROM_IMU_TO_CAR * as';
-%   A2 = [0 0 0 1; al*ac(1) 0 0 1; 0 0 0 1; 0 al*ac(2) 0 1; 0 0 0 1; 0 0 al*ac(3) 1]';
-%   B2 = rotationFromS2N * A2;
-%   plot3(B2(1,1:2),B2(2,1:2),B2(3,1:2),'Color',ViridisColerPalette06(2),'LineStyle','--','LineWidth',2); % x: red
-%   plot3(B2(1,3:4),B2(2,3:4),B2(3,3:4),'Color',ViridisColerPalette06(4),'LineStyle','--','LineWidth',2); % y: green
-%   plot3(B2(1,5:6),B2(2,5:6),B2(3,5:6),'Color',ViridisColerPalette06(6),'LineStyle','--','LineWidth',2); % z: blue
+  as = pSAcceleration(i,:);
+  ac = ROTATION_FROM_IMU_TO_CAR * as';
+  A2 = [0 0 0 1; al*ac(1) 0 0 1; 0 0 0 1; 0 al*ac(2) 0 1; 0 0 0 1; 0 0 al*ac(3) 1]';
+  B2 = rotationFromS2N * A2;
+  plot3(B2(1,1:2),B2(2,1:2),B2(3,1:2),'Color',ViridisColerPalette06(2),'LineStyle','--','LineWidth',2); % x: red
+  plot3(B2(1,3:4),B2(2,3:4),B2(3,3:4),'Color',ViridisColerPalette06(4),'LineStyle','--','LineWidth',2); % y: green
+  plot3(B2(1,5:6),B2(2,5:6),B2(3,5:6),'Color',ViridisColerPalette06(6),'LineStyle','--','LineWidth',2); % z: blue
 end
 
 headTransition = poseSE{1,1};
