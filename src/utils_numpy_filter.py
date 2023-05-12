@@ -37,6 +37,8 @@ class NUMPYIEKF:
         self.P_dim = None
         self.verbose = None
 
+        self.car_coordinate_type = 'FLU'
+
         # set the parameters
         if parameter_class is None:
             filter_parameters = NUMPYIEKF.Parameters()
@@ -100,6 +102,8 @@ class NUMPYIEKF:
             for key, value in kwargs.items():
                 setattr(self, key, value)
 
+    def set_car_coordinate_type(self, car_coordinate_type):
+        self.car_coordinate_type = car_coordinate_type
     def set_param_attr(self):
 
         # get a list of attribute only
@@ -247,11 +251,20 @@ class NUMPYIEKF:
         H_t_c_i = -self.skew(t_c_i)
 
         H = np.zeros((2, self.P_dim))
-        H[:, 3:6] = Rot_body.T[1:]
-        H[:, 15:18] = H_v_imu[1:]
-        H[:, 9:12] = H_t_c_i[1:]
-        H[:, 18:21] = -Omega[1:]
-        r = - v_body[1:]
+
+        if self.car_coordinate_type == 'RFU':
+            H[:, 3:6] = Rot_body.T[[0, 2], :]
+            H[:, 15:18] = H_v_imu[[0, 2], :]
+            H[:, 9:12] = H_t_c_i[[0, 2], :]
+            H[:, 18:21] = -Omega[[0, 2], :]
+            r = - v_body[[0, 2]]
+        else:
+            H[:, 3:6] = Rot_body.T[1:]
+            H[:, 15:18] = H_v_imu[1:]
+            H[:, 9:12] = H_t_c_i[1:]
+            H[:, 18:21] = -Omega[1:]
+            r = - v_body[1:]
+
         R = np.diag(measurement_cov)
         Rot_up, v_up, p_up, b_omega_up, b_acc_up, Rot_c_i_up, t_c_i_up, P_up = \
             self.state_and_cov_update(Rot, v, p, b_omega, b_acc, Rot_c_i, t_c_i, P, H, r, R)

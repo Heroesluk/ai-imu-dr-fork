@@ -89,7 +89,7 @@ class CustomChongQingDataset:
         aiimudr_dataset_reference_timestamp = custom_dataset_timestamp[0]
         aiimudr_dataset_timestamp = custom_dataset_timestamp - aiimudr_dataset_reference_timestamp
 
-        aiimudr_dataset_file_name = "{}_drive_{:0>4}_phone_{}_extract".format("2023_04_10", 8, "huawei_mate30_gt")
+        aiimudr_dataset_file_name = "{}_drive_{:0>4}_phone_{}_extract".format("2023_04_10", 8, "huawei_mate30")
 
         aiimudr_dataset_ground_truth_rotation_matrix = custom_parse_data.loc[
                                            :,
@@ -133,25 +133,25 @@ class CustomChongQingDataset:
                                      ]].to_numpy()
         aiimudr_dataset_ground_truth_p = aiimudr_dataset_project_p - aiimudr_dataset_project_p[0, :]
 
-        # aiimudr_dataset_observation = custom_parse_data.loc[
-        #                               :,
-        #                               [CustomChongQingDataset._PHONE_GYROSCOPE_X,
-        #                                CustomChongQingDataset._PHONE_GYROSCOPE_Y,
-        #                                CustomChongQingDataset._PHONE_GYROSCOPE_Z,
-        #                                CustomChongQingDataset._PHONE_ACCELEROMETER_X,
-        #                                CustomChongQingDataset._PHONE_ACCELEROMETER_Y,
-        #                                CustomChongQingDataset._PHONE_ACCELEROMETER_Z
-        #                                ]].to_numpy()
-
         aiimudr_dataset_observation = custom_parse_data.loc[
                                       :,
-                                      [CustomChongQingDataset._GROUND_TRUTH_GYROSCOPE_X,
-                                       CustomChongQingDataset._GROUND_TRUTH_GYROSCOPE_Y,
-                                       CustomChongQingDataset._GROUND_TRUTH_GYROSCOPE_Z,
-                                       CustomChongQingDataset._GROUND_TRUTH_ACCELEROMETER_X,
-                                       CustomChongQingDataset._GROUND_TRUTH_ACCELEROMETER_Y,
-                                       CustomChongQingDataset._GROUND_TRUTH_ACCELEROMETER_Z
+                                      [CustomChongQingDataset._PHONE_GYROSCOPE_X,
+                                       CustomChongQingDataset._PHONE_GYROSCOPE_Y,
+                                       CustomChongQingDataset._PHONE_GYROSCOPE_Z,
+                                       CustomChongQingDataset._PHONE_ACCELEROMETER_X,
+                                       CustomChongQingDataset._PHONE_ACCELEROMETER_Y,
+                                       CustomChongQingDataset._PHONE_ACCELEROMETER_Z
                                        ]].to_numpy()
+
+        # aiimudr_dataset_observation = custom_parse_data.loc[
+        #                               :,
+        #                               [CustomChongQingDataset._GROUND_TRUTH_GYROSCOPE_X,
+        #                                CustomChongQingDataset._GROUND_TRUTH_GYROSCOPE_Y,
+        #                                CustomChongQingDataset._GROUND_TRUTH_GYROSCOPE_Z,
+        #                                CustomChongQingDataset._GROUND_TRUTH_ACCELEROMETER_X,
+        #                                CustomChongQingDataset._GROUND_TRUTH_ACCELEROMETER_Y,
+        #                                CustomChongQingDataset._GROUND_TRUTH_ACCELEROMETER_Z
+        #                                ]].to_numpy()
 
         aiimudr_dataset_observation_length = aiimudr_dataset_observation.shape[0]
         rotated_aiimudr_dataset_observation = np.zeros_like(aiimudr_dataset_observation)

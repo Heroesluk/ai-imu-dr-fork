@@ -93,6 +93,8 @@ class TORCHIEKF(torch.nn.Module, NUMPYIEKF):
         self.mes_net = MesNet()
         self.cov0_measurement = None
 
+        self.car_coordinate_type = 'FLU'
+
         # modified parameters
         self.IdP = torch.eye(self.P_dim).double()
 
@@ -115,6 +117,9 @@ class TORCHIEKF(torch.nn.Module, NUMPYIEKF):
                                            self.cov_t_c_i, self.cov_t_c_i, self.cov_t_c_i])
                             ).double()
         self.cov0_measurement = torch.Tensor([self.cov_lat, self.cov_up]).double()
+
+    def set_car_coordinate_type(self, car_coordinate_type):
+        self.car_coordinate_type = car_coordinate_type
 
     def run(self, t, u,  measurements_covs, v_mes, p_mes, N, ang0):
 
@@ -228,11 +233,19 @@ class TORCHIEKF(torch.nn.Module, NUMPYIEKF):
         H_t_c_i = self.skew(t_c_i)
 
         H = P.new_zeros(2, self.P_dim)
-        H[:, 3:6] = Rot_body.t()[1:]
-        H[:, 15:18] = H_v_imu[1:]
-        H[:, 9:12] = H_t_c_i[1:]
-        H[:, 18:21] = -Omega[1:]
-        r = - v_body[1:]
+        if self.car_coordinate_type == 'RFU':
+            H[:, 3:6] = Rot_body.t()[[0, 2], :]
+            H[:, 15:18] = H_v_imu[[0, 2], :]
+            H[:, 9:12] = H_t_c_i[[0, 2], :]
+            H[:, 18:21] = -Omega[[0, 2], :]
+            r = - v_body[[0, 2]]
+        else:
+            H[:, 3:6] = Rot_body.t()[1:]
+            H[:, 15:18] = H_v_imu[1:]
+            H[:, 9:12] = H_t_c_i[1:]
+            H[:, 18:21] = -Omega[1:]
+            r = - v_body[1:]
+
         R = torch.diag(measurement_cov)
 
         Rot_up, v_up, p_up, b_omega_up, b_acc_up, Rot_c_i_up, t_c_i_up, P_up = \

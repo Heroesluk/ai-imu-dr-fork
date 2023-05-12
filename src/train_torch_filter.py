@@ -25,19 +25,22 @@ weight_decay_mesnet = {'cov_net': 1e-8,
     }
 
 
-def compute_delta_p(Rot, p):
+def compute_delta_p(Rot, p, sample_rate=100):
     list_rpe = [[], [], []]  # [idx_0, idx_end, pose_delta_p]
 
+    train_sample_interval = sample_rate / 10
+    train_sample_interval_int = int(train_sample_interval)
+
     # sample at 1 Hz
-    Rot = Rot[::10]
-    p = p[::10]
+    Rot = Rot[::train_sample_interval_int]
+    p = p[::train_sample_interval_int]
 
     step_size = 10  # every second
     distances = np.zeros(p.shape[0])
     dp = p[1:] - p[:-1]  #  this must be ground truth
     distances[1:] = dp.norm(dim=1).cumsum(0).numpy()
 
-    seq_lengths = [100, 200, 300, 400, 500, 600, 700, 800]
+    seq_lengths = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 400, 500, 600, 700, 800]
     k_max = int(Rot.shape[0] / step_size) - 1
 
     for k in range(0, k_max):
@@ -61,6 +64,8 @@ def compute_delta_p(Rot, p):
 
 def train_filter(args, dataset):
     iekf = prepare_filter(args, dataset)
+    iekf.set_car_coordinate_type(args.car_coordinate_type_string)
+
     prepare_loss_data(args, dataset)
 
     start_time = time.time()
@@ -115,7 +120,7 @@ def prepare_loss_data(args, dataset):
         for k in range(Ns[1]):
             ang_k = ang_gt[k]
             Rot_gt[k] = TORCHIEKF.from_rpy(ang_k[0], ang_k[1], ang_k[2]).double()
-        list_rpe[dataset_name] = compute_delta_p(Rot_gt[:Ns[1]], p_gt[:Ns[1]])
+        list_rpe[dataset_name] = compute_delta_p(Rot_gt[:Ns[1]], p_gt[:Ns[1]], args.sample_rate)
 
     list_rpe_validation = {}
     for dataset_name, Ns in dataset.datasets_validatation_filter.items():
@@ -125,7 +130,7 @@ def prepare_loss_data(args, dataset):
         for k in range(Ns[1]):
             ang_k = ang_gt[k]
             Rot_gt[k] = TORCHIEKF.from_rpy(ang_k[0], ang_k[1], ang_k[2]).double()
-        list_rpe_validation[dataset_name] = compute_delta_p(Rot_gt[:Ns[1]], p_gt[:Ns[1]])
+        list_rpe_validation[dataset_name] = compute_delta_p(Rot_gt[:Ns[1]], p_gt[:Ns[1]], args.sample_rate)
     
     list_rpe_ = copy.deepcopy(list_rpe)
     dataset.list_rpe = {}
@@ -164,7 +169,7 @@ def train_loop(args, dataset, epoch, iekf, optimizer, seq_dim):
                                                                   iekf, seq_dim)
 
         loss = mini_batch_step(dataset, dataset_name, iekf,
-                               dataset.list_rpe[dataset_name], t, ang_gt, p_gt, v_gt, u, N0)
+                               dataset.list_rpe[dataset_name], t, ang_gt, p_gt, v_gt, u, N0, args)
 
         if loss == -1 or torch.isnan(loss):
             cprint("{} loss is invalid".format(i), 'yellow')
@@ -217,14 +222,14 @@ def save_iekf_net_copy(args, model, train_head_time, save_epoch, config_epoch, l
     log_info('train_filter', log_str)
 
 
-def mini_batch_step(dataset, dataset_name, iekf, list_rpe, t, ang_gt, p_gt, v_gt, u, N0):
+def mini_batch_step(dataset, dataset_name, iekf, list_rpe, t, ang_gt, p_gt, v_gt, u, N0, args):
     iekf.set_Q()
     measurements_covs = iekf.forward_nets(u)
     Rot, v, p, b_omega, b_acc, Rot_c_i, t_c_i = iekf.run(t, u, measurements_covs,
                                                             v_gt, p_gt, t.shape[0],
                                                             ang_gt[0])
     
-    delta_p, delta_p_gt = precompute_lost(Rot, p, list_rpe, N0)
+    delta_p, delta_p_gt = precompute_lost(Rot, p, list_rpe, N0, args.sample_rate)
     if delta_p is None:
         return -1
     loss = criterion(delta_p, delta_p_gt)
@@ -281,10 +286,14 @@ def get_start_and_end(seq_dim, u):
     return N0, N
 
 
-def precompute_lost(Rot, p, list_rpe, N0):
+def precompute_lost(Rot, p, list_rpe, N0, sample_rate):
+
+    train_sample_interval = sample_rate / 10
+    train_sample_interval_int = int(train_sample_interval)
+
     N = p.shape[0]
-    Rot_10_Hz = Rot[::10]
-    p_10_Hz = p[::10]
+    Rot_10_Hz = Rot[::train_sample_interval_int]
+    p_10_Hz = p[::train_sample_interval_int]
     idxs_0 = torch.Tensor(list_rpe[0]).clone().long() - int(N0 / 10)
     idxs_end = torch.Tensor(list_rpe[1]).clone().long() - int(N0 / 10)
     delta_p_gt = list_rpe[2]

@@ -420,7 +420,10 @@ class KITTIDataset(BaseDataset):
 
 def test_filter(args, dataset):
     iekf = IEKF()
+    iekf.set_car_coordinate_type(args.car_coordinate_type_string)
+
     torch_iekf = TORCHIEKF()
+    torch_iekf.set_car_coordinate_type(args.car_coordinate_type_string)
 
     # put Kitti parameters
     iekf.filter_parameters = KITTIParameters()
@@ -498,20 +501,22 @@ class KITTIArgs():
         path_data_save = "../data"
         path_results = "../results"
         path_temp = "../temp"
-        file_name_loss_data = "delta_p_test_2023_04_10_drive_0008_phone_huawei_mate30_gt_extract.p"
-        file_name_normalize_factors = "normalize_factors_2023_04_10_drive_0008_phone_huawei_mate30_gt_extract"
 
-        epochs = 400
-        seq_dim = 6000
+        #
+        file_name_loss_data = "delta_p_test_2023_04_10_drive_0008_phone_huawei_mate30_extract.p"
+        file_name_normalize_factors = "normalize_factors_2023_04_10_drive_0008_phone_huawei_mate30_extract"
+
+        epochs = 100
+        seq_dim = 1000
 
         # training, cross-validation and test dataset
         # cross_validation_sequences = ['2011_09_30_drive_0028_extract']
 
-        cross_validation_sequences = ['2023_04_10_drive_0008_phone_huawei_mate30_gt_extract']
+        cross_validation_sequences = ['2023_04_10_drive_0008_phone_huawei_mate30_extract']
 
         # test_sequences = ['2011_09_26_drive_0009_extract']
         # test_sequences = ['2011_09_26_drive_0015_extract']
-        test_sequences = ['2011_09_30_drive_0016_extract']
+        # test_sequences = ['2011_09_30_drive_0016_extract']
         # test_sequences = ['2011_09_30_drive_0027_extract']
         # test_sequences = ['2011_09_30_drive_0028_extract']
 
@@ -519,17 +524,23 @@ class KITTIArgs():
         # test_sequences = ['2022_03_15_drive_0001_extract']
 
         # test_sequences = ['2023_04_10_drive_0001_phone_huawei_mate30_extract']
+        test_sequences = ['2023_04_10_drive_0008_phone_huawei_mate30_extract']
         # test_sequences = ['2023_04_10_drive_0008_phone_huawei_mate30_gt_extract']
+
+        sample_rate = 200
 
         continue_training = True
 
         # choose what to do
         read_data = 0
-        train_filter = 0
-        test_filter = 1
+        train_filter = 1
+        test_filter = 0
         results_filter = 0
         dataset_class = KITTIDataset
         parameter_class = KITTIParameters
+
+        # TODO: 配置自采数据集的车体坐标标识，影响不变卡尔曼滤波伪观测值更新
+        car_coordinate_type_string = 'RFU'
 
 
 if __name__ == '__main__':
