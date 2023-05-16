@@ -40,7 +40,8 @@ def compute_delta_p(Rot, p, sample_rate=100):
     dp = p[1:] - p[:-1]  #  this must be ground truth
     distances[1:] = dp.norm(dim=1).cumsum(0).numpy()
 
-    seq_lengths = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 400, 500, 600, 700, 800]
+    # seq_lengths = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 400, 500, 600, 700, 800]
+    seq_lengths = [100, 200, 300, 400, 500, 600, 700, 800]
     k_max = int(Rot.shape[0] / step_size) - 1
 
     for k in range(0, k_max):
@@ -166,7 +167,7 @@ def train_loop(args, dataset, epoch, iekf, optimizer, seq_dim):
     for i, (dataset_name, Ns) in enumerate(dataset.datasets_train_filter.items()):
         # Training consists of repeating for a chosen number of epochs the following iterations: i)
         t, ang_gt, p_gt, v_gt, u, N0 = prepare_data_filter(dataset, dataset_name, Ns,
-                                                                  iekf, seq_dim)
+                                                                  iekf, seq_dim, args.sample_rate)
 
         loss = mini_batch_step(dataset, dataset_name, iekf,
                                dataset.list_rpe[dataset_name], t, ang_gt, p_gt, v_gt, u, N0, args)
@@ -249,7 +250,7 @@ def set_optimizer(iekf):
     return optimizer
 
 
-def prepare_data_filter(dataset, dataset_name, Ns, iekf, seq_dim):
+def prepare_data_filter(dataset, dataset_name, Ns, iekf, seq_dim, sample_rate):
     # get data with trainable instant
     t, ang_gt, p_gt, v_gt,  u = dataset.get_data(dataset_name)
     t = t[Ns[0]: Ns[1]]
@@ -261,7 +262,7 @@ def prepare_data_filter(dataset, dataset_name, Ns, iekf, seq_dim):
     # subsample data
     # Regarding i), we sample a batch of nine 1 min sequences,
     # where each sequence starts at a random arbitrary time.
-    N0, N = get_start_and_end(seq_dim, u)
+    N0, N = get_start_and_end(seq_dim, u, sample_rate)
     t = t[N0: N].double()
     ang_gt = ang_gt[N0: N].double()
     p_gt = (p_gt[N0: N] - p_gt[N0]).double()
@@ -276,12 +277,14 @@ def prepare_data_filter(dataset, dataset_name, Ns, iekf, seq_dim):
     return t, ang_gt, p_gt, v_gt, u, N0
 
 
-def get_start_and_end(seq_dim, u):
+def get_start_and_end(seq_dim, u, sample_rate):
     if seq_dim is None:
         N0 = 0
         N = u.shape[0]
-    else: # training sequence
-        N0 = 10 * int(np.random.randint(0, (u.shape[0] - seq_dim)/10))
+    else:
+        # training sequence
+        x = int(sample_rate / 10)
+        N0 = x * int(np.random.randint(0, (u.shape[0] - seq_dim)/x))
         N = N0 + seq_dim
     return N0, N
 
@@ -300,7 +303,7 @@ def precompute_lost(Rot, p, list_rpe, N0, sample_rate):
     idxs = torch.Tensor(idxs_0.shape[0]).bool()
     idxs[:] = True
     idxs[idxs_0 < 0] = False
-    idxs[idxs_end >= int(N / 10)] = False
+    idxs[idxs_end >= int(N / train_sample_interval)] = False
     delta_p_gt = delta_p_gt[idxs]
     idxs_end_bis = idxs_end[idxs]
     idxs_0_bis = idxs_0[idxs]

@@ -1,9 +1,12 @@
+% 重置工作区环境
 close all;
 clear;
+
+% 添加自定义工具类函数
 addpath(genpath(pwd));
+TAG = 'PreprocessorCoarseClip';
 
-load 'SmartPhoneDataConfig.mat';
-
+% 添加时间换算常量
 S2MS = 1e3;
 MS2S = 1/S2MS;
 S2NS = 1e9;
@@ -13,41 +16,47 @@ NS2MS = 1/MS2NS;
 US2NS = 1e3;
 NS2US = 1/US2NS;
 
-TAG = 'PreprocessorCoarseClip';
-kRawFolderName = 'raw';
-cDayZeroOClockAlignFolderName = 'dayZeroOClockAlign';
-
-cPhoneMapNumber = ["HUAWEI_Mate30"];
-% cPhoneMapNumber = ["GOOGLE_Pixel3" "HUAWEI_Mate30"];
+% TODO: S1.1: 配置数据集存储文件夹 根目录
+% cDatasetFolderPath = 'C:\DoctorRelated\20230410重庆VDR数据采集';
+cDatasetFolderPath = 'E:\DoctorRelated\20230410重庆VDR数据采集';
+% TODO: S1.2: 配置数据集存储文件夹 采集日期
+cDatasetCollectionDate = '2023_04_10';
+% 添加预处理粗分割文件夹路径
+cReorganizedFolderName = 'Reorganized';
+cReorganizedFolderPath = fullfile(cDatasetFolderPath,cDatasetCollectionDate,cReorganizedFolderName);
+% TODO: S1.3: 配置数据集存储文件夹 采集轨迹编号
+cPreprocessTrackList = ["0009"];
+cPreprocessTrackListLength = length(cPreprocessTrackList);
+% TODO: S1.4: 配置数据集存储文件夹 采集手机
+% cPhoneMapNumber = ["HUAWEI_Mate30"];
+cPhoneMapNumber = ["GOOGLE_Pixel3" "HUAWEI_Mate30"];
 % cPhoneMapNumber = ["GOOGLE_Pixel3" "HUAWEI_Mate30" "HUAWEI_P20"];
 kPhoneMapNumberLength = length(cPhoneMapNumber);
 
-% cDatasetFolderPath = 'C:\DoctorRelated\20230410重庆VDR数据采集';
-cDatasetFolderPath = 'E:\DoctorRelated\20230410重庆VDR数据采集';
-cDatasetCollectionDate = '2023_04_10';
-cReorganizedFolderName = 'Reorganized';
-cReorganizedFolderPath = fullfile(cDatasetFolderPath,cDatasetCollectionDate,cReorganizedFolderName);
-
-cTrackSmartPhoneStatisticColumn = 6;
-cTrackPhoneCoarseClipStatisticFileName = 'TrackPhoneCoarseClipStatistic.csv';
-cTrackCoarseClipStatisticFileName = 'TrackSensorCoarseClipStatistic.csv';
-
-isRecomputeGroundTruthFile = true;
-cTrackGroundTruthNavFileName = 'TrackGroundTruthNav.csv';
-cTrackGroundTruthImuFileName = 'TrackGroundTruthImu.csv';
-
+% TODO: S2.1: 配置导航坐标系参考真值文件路径
 % Load Novatel SPAN data
 cGpsWeek = 2257;
 cReferenceNovatelSpanDataFilePath = 'E:\DoctorRelated\20230410重庆VDR数据采集\2023_04_10\重大数据\SPAN\IMU位置车体姿态\3-车体坐标系-IMU位置-gps.csv';
 novatelSpanData = loadSpanPostDataWithZeroOClockTime(cReferenceNovatelSpanDataFilePath,cGpsWeek,cDatasetCollectionDate);
-
+% TODO: S2.2: 配置时间同步参考IMU文件路径
 % Load JZ-MINS200 data
 cReferenceJZMINS200DataFilePath = 'E:\DoctorRelated\20230410重庆VDR数据采集\2023_04_10\重大数据\九州数据\九洲设备-COM4-2023_4_10_14-17-17-imu.csv';
 jZMINS200Data = loadJzMins200DataWithZeroOClockTime(cReferenceJZMINS200DataFilePath,cGpsWeek,cDatasetCollectionDate);
 
+% 添加输入原始数据集存储文件夹
+kRawFolderName = 'raw';
+load 'SmartPhoneDataConfig.mat';
+% 添加输出预处理粗切割存储文件夹
+cDayZeroOClockAlignFolderName = 'dayZeroOClockAlign';
 
-cPreprocessTrackList = ["0008"];
-cPreprocessTrackListLength = length(cPreprocessTrackList);
+
+% DEBUG: 配置是否重新计算
+isRecomputeGroundTruthFile = true;
+cTrackSmartPhoneStatisticColumn = 6;
+cTrackPhoneCoarseClipStatisticFileName = 'TrackPhoneCoarseClipStatistic.csv';
+cTrackCoarseClipStatisticFileName = 'TrackSensorCoarseClipStatistic.csv';
+cTrackGroundTruthNavFileName = 'TrackGroundTruthNav.csv';
+cTrackGroundTruthImuFileName = 'TrackGroundTruthImu.csv';
 
 for i = 1:cPreprocessTrackListLength
     tTrackFolderNameStr = cPreprocessTrackList(i);

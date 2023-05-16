@@ -128,8 +128,11 @@ class KITTIDataset(BaseDataset):
         # self.datasets_train_filter["2011_10_03_drive_0034_extract"] = [0, 31000]
         # self.datasets_train_filter["2011_09_30_drive_0034_extract"] = [0, None]
 
-        self.datasets_validatation_filter['2023_04_10_drive_0008_phone_huawei_mate30_gt_extract'] = [0, 24800]
-        self.datasets_train_filter["2023_04_10_drive_0008_phone_huawei_mate30_gt_extract"] = [0, 24800]
+        # self.datasets_validatation_filter['2023_04_10_drive_0008_phone_huawei_mate30_gt_extract'] = [0, 24800]
+        # self.datasets_train_filter["2023_04_10_drive_0008_phone_huawei_mate30_gt_extract"] = [0, 24800]
+
+        self.datasets_validatation_filter['2023_04_10_drive_0008_phone_huawei_mate30_extract'] = [0, 24800]
+        self.datasets_train_filter["2023_04_10_drive_0008_phone_huawei_mate30_extract"] = [0, 24800]
 
         for dataset_fake in KITTIDataset.datasets_fake:
             if dataset_fake in self.datasets:
@@ -507,7 +510,7 @@ class KITTIArgs():
         file_name_normalize_factors = "normalize_factors_2023_04_10_drive_0008_phone_huawei_mate30_extract"
 
         epochs = 100
-        seq_dim = 1000
+        seq_dim = 12000
 
         # training, cross-validation and test dataset
         # cross_validation_sequences = ['2011_09_30_drive_0028_extract']
@@ -545,6 +548,7 @@ class KITTIArgs():
 
 if __name__ == '__main__':
 
+    logging.basicConfig(level=logging.DEBUG)
     logging.info('Test')
 
     args = KITTIArgs()

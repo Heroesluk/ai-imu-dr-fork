@@ -14,6 +14,7 @@ cSpanDatasetResampledDataFilePath = fullfile(cSpanDatasetFolderPath,'SPAN',cSpan
 load(cSpanDatasetResampledDataFilePath);
 
 cTrainDatasetFolderPath = 'E:\DoctorRelated\20230410重庆VDR数据采集\2023_04_10\Reorganized\0008\HUAWEI_Mate30\dayZeroOClockAlign';
+% cTrainDatasetFolderPath = 'E:\DoctorRelated\20230410重庆VDR数据采集\2023_04_10\Reorganized\0009\GOOGLE_Pixel3\dayZeroOClockAlign';
 cTrainFileName = 'TrackSynchronized.mat';
 cTrainFilePath = fullfile(cTrainDatasetFolderPath,cTrainFileName);
 if ~isfile(cTrainFilePath)
@@ -67,7 +68,7 @@ tailBiasEstimation = mean(measurement(tailBiasEstimationIndex,:),1);
 headtailBiasEstimation = vertcat(headBiasEstimation,tailBiasEstimation);
 
 % spanResampledData = spanResampledData(1:spanResampledDataSize,:);
-spanResampledData = spanResampledData(7000:spanResampledDataSize,:);
+spanResampledData = spanResampledData(1200:spanResampledDataSize,:);
 % spanResampledData = spanResampledData(6800:spanResampledDataSize,:);
 spanResampledDataSize = size(spanResampledData,1);
 
@@ -121,13 +122,13 @@ filterIntermediateState{1,FIS_VELOCITY_IN_NAV_SAVE_INDEX} = spanResampledData{1,
 filterIntermediateState{1,FIS_POSITION_INDEX} = (spanResampledData{1,2}(1:3,4))';
 filterIntermediateState{1,FIS_ANGULAR_SPEED_SAVE_INDEX} = spanResampledData{1,4};
 
-% filterIntermediateState{1,FIS_ANGULAR_SPEED_BIAS_SAVE_INDEX} = zeros(1,3);
-filterIntermediateState{1,FIS_ANGULAR_SPEED_BIAS_SAVE_INDEX} = (headBiasEstimation(1:3));
+filterIntermediateState{1,FIS_ANGULAR_SPEED_BIAS_SAVE_INDEX} = zeros(1,3);
+% filterIntermediateState{1,FIS_ANGULAR_SPEED_BIAS_SAVE_INDEX} = (headBiasEstimation(1:3));
 
 filterIntermediateState{1,FIS_ACCELERATION_SAVE_INDEX} = spanResampledData{1,5};
 
-% filterIntermediateState{1,FIS_ACCELERATION_BIAS_SAVE_INDEX} = zeros(1,3);
-filterIntermediateState{1,FIS_ACCELERATION_BIAS_SAVE_INDEX} = (headBiasEstimation(4:6) + GRAVITY');
+filterIntermediateState{1,FIS_ACCELERATION_BIAS_SAVE_INDEX} = zeros(1,3);
+% filterIntermediateState{1,FIS_ACCELERATION_BIAS_SAVE_INDEX} = (headBiasEstimation(4:6) + GRAVITY');
 
 filterIntermediateState{1,FIS_SOBRACKET3_FROM_IMU_TO_CAR_SAVE_INDEX} = ROTATION_FROM_IMU_TO_CAR;
 filterIntermediateState{1,FIS_TRANSLATION_FROM_IMU_TO_CAR_SAVE_INDEX} = [0 0 0];
@@ -177,10 +178,10 @@ filterInitQ(16:18,16:18) = eye(3) * noiseTransitionFromImuToCar;
 filterIntermediateState{1,FIS_Q_SAVE_INDEX} = filterInitQ;
 
 measurementCovarianceR = zeros(2);
-measurementCovarianceR(1,1) = 2;
-measurementCovarianceR(2,2) = 21;
-% measurementCovarianceR(1,1) = 1e-1;
-% measurementCovarianceR(2,2) = 1e-1;
+% measurementCovarianceR(1,1) = 2;
+% measurementCovarianceR(2,2) = 21;
+measurementCovarianceR(1,1) = 15;
+measurementCovarianceR(2,2) = 8;
 
 if SCRIPT_MODE == 0
 
@@ -387,6 +388,18 @@ for i =2:spanResampledDataSize
 
     updateState1Rotation = updateStateSESubscript4Bracket3DeltaRotation * propagateState1RotationEstimation;
     updateState2Velocity = updateStateSESubscript4Bracket3DeltaRotation * propagateState2VelocityEstimation + updateStateSESubscript4Bracket3DeltaVelocityInNav;
+    
+    updateState2VelocityNorm = norm(updateState2Velocity);
+    limitSpeed = 5;
+    limitVerticalSpeed = 0.8;
+    if updateState2VelocityNorm > limitSpeed
+        updateState2Velocity = updateState2Velocity * limitSpeed / updateState2VelocityNorm;
+
+        if abs(updateState2Velocity(3)) > limitVerticalSpeed
+            updateState2Velocity(3) = sign(updateState2Velocity(3)) * limitVerticalSpeed;
+        end
+    end
+    
     updateState3Translation = updateStateSESubscript4Bracket3DeltaRotation * propagateState3TranslationEstimation + updateStateSESubscript4Bracket3DeltaTransitionInNav;
     updateState4AngulerSpeedBias = propagateState4AngularSpeedBias + updateStateMeasurementTransitionDeltaX(10:12);
     updateState5AccelerationBias = propagateState5AccelerationBias + updateStateMeasurementTransitionDeltaX(13:15);

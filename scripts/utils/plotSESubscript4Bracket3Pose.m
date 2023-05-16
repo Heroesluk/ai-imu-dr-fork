@@ -14,6 +14,10 @@ ROTATION_FROM_IMU_TO_CAR = [ 1 0  0;
     0 1 0;
     0  0 1];
 
+% ROTATION_FROM_IMU_TO_CAR = [-1 0  0;
+%     0 -1 0;
+%     0  0 1];
+
 pTime = cell2mat(poseTime);
 pTimeSize = size(pTime,1);
 
@@ -24,19 +28,24 @@ pMaxVelocity = max(pVelocity);
 poseSGyroscope = cell2mat(poseSGyroscope);
 
 pSAcceleration = cell2mat(poseSAcceleration);
+
+figure;
+hold on;
+plot(pSAcceleration(:,1),'DisplayName','Accelerometer X');
+plot(pSAcceleration(:,2),'DisplayName','Accelerometer Y');
+plot(pSAcceleration(:,3),'DisplayName','Accelerometer Z');
+legend;
+hold off;
+
+figure;
+hold on;
+plot(poseSGyroscope);
+hold off;
+
 pSAcceleration = pSAcceleration + GRAVITY';
 pAcceleration = sqrt(sum(pSAcceleration.^2,2));
 pMaxAcceleration = max(pAcceleration);
 
-% figure;
-% hold on;
-% plot(pSAcceleration);
-% hold off;
-% 
-% figure;
-% hold on;
-% plot(poseSGyroscope);
-% hold off;
 
 figure;
 hold on;
