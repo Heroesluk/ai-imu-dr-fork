@@ -196,9 +196,13 @@ def results_filter(args, dataset):
         figs = [fig1, fig2, fig3, fig4, fig5, fig6, fig7, ]
         figs_name = ["position_velocity", "orientation_bias", "position_xy", "position_xy_aligned",
                      "measurements_covs", "imu", "errors", "errors2"]
+
         for l, fig in enumerate(figs):
             fig_name = figs_name[l]
             fig.savefig(os.path.join(folder_path, fig_name + ".png"))
+
+        np.savetxt(os.path.join(folder_path, "measurements_covs" + ".txt"), measurements_covs)
+
 
         # plt.show(block=True)
 

@@ -131,8 +131,11 @@ class KITTIDataset(BaseDataset):
         # self.datasets_validatation_filter['2023_04_10_drive_0008_phone_huawei_mate30_gt_extract'] = [0, 24800]
         # self.datasets_train_filter["2023_04_10_drive_0008_phone_huawei_mate30_gt_extract"] = [0, 24800]
 
-        self.datasets_validatation_filter['2023_04_10_drive_0008_phone_huawei_mate30_extract'] = [0, 24800]
-        self.datasets_train_filter["2023_04_10_drive_0008_phone_huawei_mate30_extract"] = [0, 24800]
+        # self.datasets_validatation_filter['2023_04_10_drive_0008_phone_huawei_mate30_extract'] = [0, 24800]
+        # self.datasets_train_filter["2023_04_10_drive_0008_phone_huawei_mate30_extract"] = [0, 24800]
+
+        self.datasets_validatation_filter['2023_04_10_drive_0008_phone_google_pixel3_extract'] = [0, 24601]
+        self.datasets_train_filter["2023_04_10_drive_0008_phone_google_pixel3_extract"] = [0, 24601]
 
         for dataset_fake in KITTIDataset.datasets_fake:
             if dataset_fake in self.datasets:
@@ -506,16 +509,19 @@ class KITTIArgs():
         path_temp = "../temp"
 
         #
-        file_name_loss_data = "delta_p_test_2023_04_10_drive_0008_phone_huawei_mate30_extract.p"
-        file_name_normalize_factors = "normalize_factors_2023_04_10_drive_0008_phone_huawei_mate30_extract"
+        # file_name_loss_data = "delta_p_test_2023_04_10_drive_0008_phone_huawei_mate30_extract.p"
+        # file_name_normalize_factors = "normalize_factors_2023_04_10_drive_0008_phone_huawei_mate30_extract"
 
-        epochs = 100
+        file_name_loss_data = "delta_p_test_2023_04_10_drive_0008_phone_google_pixel3_extract.p"
+        file_name_normalize_factors = "normalize_factors_2023_04_10_drive_0008_phone_google_pixel3_extract"
+
+        epochs = 300
         seq_dim = 12000
 
         # training, cross-validation and test dataset
         # cross_validation_sequences = ['2011_09_30_drive_0028_extract']
 
-        cross_validation_sequences = ['2023_04_10_drive_0008_phone_huawei_mate30_extract']
+        cross_validation_sequences = ['2023_04_10_drive_0008_phone_google_pixel3_extract']
 
         # test_sequences = ['2011_09_26_drive_0009_extract']
         # test_sequences = ['2011_09_26_drive_0015_extract']
@@ -527,7 +533,8 @@ class KITTIArgs():
         # test_sequences = ['2022_03_15_drive_0001_extract']
 
         # test_sequences = ['2023_04_10_drive_0001_phone_huawei_mate30_extract']
-        test_sequences = ['2023_04_10_drive_0008_phone_huawei_mate30_extract']
+        # test_sequences = ['2023_04_10_drive_0008_phone_huawei_mate30_extract']
+        test_sequences = ['2023_04_10_drive_0008_phone_google_pixel3_extract']
         # test_sequences = ['2023_04_10_drive_0008_phone_huawei_mate30_gt_extract']
 
         sample_rate = 200
@@ -537,8 +544,8 @@ class KITTIArgs():
         # choose what to do
         read_data = 0
         train_filter = 1
-        test_filter = 0
-        results_filter = 0
+        test_filter = 1
+        results_filter = 1
         dataset_class = KITTIDataset
         parameter_class = KITTIParameters
 
