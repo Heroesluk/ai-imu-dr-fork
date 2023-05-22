@@ -78,7 +78,7 @@ class CustomChongQingDataset:
         path = osp.join(folder, 'dayZeroOClockAlign', 'TrackSynchronized.csv')
         custom_raw_data = pd.read_csv(
             path,
-            header=0,
+            header=None,
             names=CustomChongQingDataset._CUSTOM_DATA_NAMES_LIST
         )
 
@@ -89,7 +89,8 @@ class CustomChongQingDataset:
         aiimudr_dataset_reference_timestamp = custom_dataset_timestamp[0]
         aiimudr_dataset_timestamp = custom_dataset_timestamp - aiimudr_dataset_reference_timestamp
 
-        aiimudr_dataset_file_name = "{}_drive_{:0>4}_phone_{}_extract".format("2023_04_10", 8, "huawei_mate30")
+        # aiimudr_dataset_file_name = "{}_drive_{:0>4}_phone_{}_extract".format("2023_04_10", 8, "huawei_mate30")
+        aiimudr_dataset_file_name = "{}_drive_{:0>4}_phone_{}_extract".format("2023_04_10", 8, "google_pixel3")
 
         aiimudr_dataset_ground_truth_rotation_matrix = custom_parse_data.loc[
                                            :,
