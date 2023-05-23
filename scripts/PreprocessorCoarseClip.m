@@ -28,8 +28,8 @@ cReorganizedFolderPath = fullfile(cDatasetFolderPath,cDatasetCollectionDate,cReo
 cPreprocessTrackList = ["0009"];
 cPreprocessTrackListLength = length(cPreprocessTrackList);
 % TODO: S1.4: 配置数据集存储文件夹 采集手机
-% cPhoneMapNumber = ["HUAWEI_Mate30"];
-cPhoneMapNumber = ["GOOGLE_Pixel3" "HUAWEI_Mate30"];
+cPhoneMapNumber = ["HUAWEI_Mate30"];
+% cPhoneMapNumber = ["GOOGLE_Pixel3" "HUAWEI_Mate30"];
 % cPhoneMapNumber = ["GOOGLE_Pixel3" "HUAWEI_Mate30" "HUAWEI_P20"];
 kPhoneMapNumberLength = length(cPhoneMapNumber);
 
@@ -49,6 +49,8 @@ load 'SmartPhoneDataConfig.mat';
 % 添加输出预处理粗切割存储文件夹
 cDayZeroOClockAlignFolderName = 'dayZeroOClockAlign';
 
+% TODO: S3.1: 配置是否替换有问题的GNSS时间基准
+isReplaceGpsTimeBase = false;
 
 % DEBUG: 配置是否重新计算
 isRecomputeGroundTruthFile = true;
@@ -99,13 +101,35 @@ for i = 1:cPreprocessTrackListLength
                                         % GNSS sensor data need to be handled separately
                                         if strcmp(tSensorFileName,kGnssLocationFileNameString)
                                             tSensorRawDataSysClockSensorEventTime = tSensorRawData(:,1) * MS2S + (tSensorRawData(:,5) - tSensorRawData(:,2)) * NS2S;
-                                            tSensorRawDataGpsClockSensorEventTime = (tSensorRawData(:,3) + tSensorRawData(:,5)) * NS2S;
+
+                                            if isReplaceGpsTimeBase
+                                                tSensorGnssMeasurementFilePath = fullfile(tTrackSmartPhoneFolderPath,kRawFolderName,kGnssMeasurementFileNameString);
+                                                tSensorGnssMeasurementRawData = readmatrix(tSensorGnssMeasurementFilePath);
+                                                tSensorRawDataSysClockSensorEventTime = tSensorGnssMeasurementRawData(:,1) * MS2S;
+                                                tSensorGnssMeasurementRawDataGpsClockBaseSensorEventTime = tSensorGnssMeasurementRawData(:,4) - (tSensorGnssMeasurementRawData(:,6) + tSensorGnssMeasurementRawData(:,7)) - tSensorGnssMeasurementRawData(:,2);
+                                                tEstimatedGpsClockBaseSensorEventTime = interp1(tSensorGnssMeasurementRawDataSysClockSensorEventTime,tSensorGnssMeasurementRawDataGpsClockBaseSensorEventTime,tSensorRawData(:,1),'linear','extrap');
+                                                tSensorRawDataGpsClockSensorEventTime = (tEstimatedGpsClockBaseSensorEventTime + tSensorRawData(:,5)) * NS2S;
+                                            else
+                                                tSensorRawDataGpsClockSensorEventTime = (tSensorRawData(:,3) + tSensorRawData(:,5)) * NS2S;
+                                            end
+                                            
                                         elseif strcmp(tSensorFileName,kGnssMeasurementFileNameString)
                                             tSensorRawDataSysClockSensorEventTime = tSensorRawData(:,1) * MS2S;
                                             tSensorRawDataGpsClockSensorEventTime = (tSensorRawData(:,4) - (tSensorRawData(:,6) + tSensorRawData(:,7))) * NS2S;
                                         else
                                             tSensorRawDataSysClockSensorEventTime = tSensorRawData(:,1) * MS2S + (tSensorRawData(:,4) - tSensorRawData(:,2)) * NS2S;
-                                            tSensorRawDataGpsClockSensorEventTime = (tSensorRawData(:,3) + tSensorRawData(:,4)) * NS2S;
+                                            
+                                            if isReplaceGpsTimeBase
+                                                tSensorGnssMeasurementFilePath = fullfile(tTrackSmartPhoneFolderPath,kRawFolderName,kGnssMeasurementFileNameString);
+                                                tSensorGnssMeasurementRawData = readmatrix(tSensorGnssMeasurementFilePath);
+                                                tSensorGnssMeasurementRawDataSysClockSensorEventTime = tSensorGnssMeasurementRawData(:,1);
+                                                tSensorGnssMeasurementRawDataGpsClockBaseSensorEventTime = tSensorGnssMeasurementRawData(:,4) - (tSensorGnssMeasurementRawData(:,6) + tSensorGnssMeasurementRawData(:,7)) - tSensorGnssMeasurementRawData(:,2);
+                                                tEstimatedGpsClockBaseSensorEventTime = interp1(tSensorGnssMeasurementRawDataSysClockSensorEventTime,tSensorGnssMeasurementRawDataGpsClockBaseSensorEventTime,tSensorRawData(:,1),'linear','extrap');
+                                                tSensorRawDataGpsClockSensorEventTime = (tEstimatedGpsClockBaseSensorEventTime + tSensorRawData(:,4)) * NS2S;
+                                            else
+                                                tSensorRawDataGpsClockSensorEventTime = (tSensorRawData(:,3) + tSensorRawData(:,4)) * NS2S;
+                                            end
+                                            
                                         end
                                         % Convert UTC or GPS time to the zero O'clock on day
                                         [referenceZeroOClockDateTimeFromSystemClock, referenceZeroOClockFromSystemClockOffset] = getSystemCurrentTimeMillisMapZeroOClockTime(tSensorRawDataSysClockSensorEventTime(1,1)*S2MS);
