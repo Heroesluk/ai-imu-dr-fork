@@ -4,8 +4,8 @@ addpath(genpath(pwd));
 TAG = 'interpolateSpanRawData';
 
 t1DateTime = datetime('now');
-t1DateStr = datestr(t1DateTime,'yyyy-mm-dd HH:MM:ss.FFF');
-logMsg = sprintf('Start time %s',t1DateStr);
+t1DateStr = string(t1DateTime,'yyyy-MM-dd HH:mm:ss.SSS');
+logMsg = sprintf('Interpolate start time %s',t1DateStr);
 log2terminal('I',TAG,logMsg);
 
 sampledTime = spanRawData(:,1);
@@ -86,10 +86,10 @@ interpolatedSpanData = resampledPoseMatrix;
 t2DateTime = datetime('now');
 dt = t2DateTime - t1DateTime;
 dtSecond = seconds(dt);
-t2DateStr = datestr(t2DateTime,'yyyy-mm-dd HH:MM:ss.FFF');
-logMsg = sprintf('End time %s',t2DateStr);
+t2DateStr = string(t2DateTime,'yyyy-MM-dd HH:mm:ss.SSS');
+logMsg = sprintf('Interpolate end time %s',t2DateStr);
 log2terminal('I',TAG,logMsg);
-logMsg = sprintf('Time spent %.0f s',dtSecond);
+logMsg = sprintf('Interpolate time spent %.0f s',dtSecond);
 log2terminal('I',TAG,logMsg);
 
 end
