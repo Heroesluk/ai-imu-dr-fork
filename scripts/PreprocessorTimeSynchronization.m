@@ -21,16 +21,18 @@ NS2US = 1/US2NS;
 % cDatasetFolderPath = 'C:\DoctorRelated\20230410重庆VDR数据采集';
 cDatasetFolderPath = 'E:\DoctorRelated\20230410重庆VDR数据采集';
 % TODO: S1.2: 配置数据集存储文件夹 采集日期
-cDatasetCollectionDate = '2023_04_10';
+cDatasetCollectionDate = '2023_04_15';
 % 添加预处理粗分割文件夹路径
 cReorganizedFolderName = 'Reorganized';
 cReorganizedFolderPath = fullfile(cDatasetFolderPath,cDatasetCollectionDate,cReorganizedFolderName);
 % TODO: S1.3: 配置数据集存储文件夹 采集轨迹编号
-cPreprocessTrackList = ["0009"];
+cPreprocessTrackList = ["0008"];
+% cPreprocessTrackList = ["0017" "0018" "0019" "0020" "0021" "0022" "0023"];
 cPreprocessTrackListLength = length(cPreprocessTrackList);
 % TODO: S1.4: 配置数据集存储文件夹 采集手机
 % cPhoneMapNumber = ["GOOGLE_Pixel3"];
 cPhoneMapNumber = ["HUAWEI_Mate30"];
+% cPhoneMapNumber = ["HUAWEI_P20"];
 % cPhoneMapNumber = ["GOOGLE_Pixel3" "HUAWEI_Mate30"];
 % cPhoneMapNumber = ["GOOGLE_Pixel3" "HUAWEI_Mate30" "HUAWEI_P20"];
 kPhoneMapNumberLength = length(cPhoneMapNumber);
@@ -45,16 +47,17 @@ cTrackSynchronizedFileName = 'TrackSynchronized.csv';
 
 % DEBUG: 配置是否重新计算
 isRecomputeTrackSynchronizedFile = true;
+isRecomputeTrackGroundTruthNavTime = true;
 
 % DEBUG: 配置可视化时间同步传感器测量值
 cVisualizeCoarseClipData = 0;
-cVisualizeFineClipData = 1;
+cVisualizeFineClipData = 0;
 
 % DEBUG: 配置可视化全局时间同步
 cVisualizeGlobalSynchronization = true;
 
 % DEBUG: 配置可视化局部时间同步
-cVisualizeLocalSynchronization = true;
+cVisualizeLocalSynchronization = false;
 
 
 for i = 1:cPreprocessTrackListLength
@@ -81,7 +84,21 @@ for i = 1:cPreprocessTrackListLength
                         plotSmartPhoneImuData(cVisualizeCoarseClipData,tTrackSmartPhoneSensorGyroscopeUncalibratedFilePath,tTrackSmartPhoneSensorAccelerometerUncalibratedFilePath);
 
                         % DEBUG: Visualize fine clip
-                        groundTruthImuData = readmatrix(tTrackGroundTruthImuFilePath);
+                        groundTruthImuRawData = readmatrix(tTrackGroundTruthImuFilePath);
+                        groundTruthImuData = groundTruthImuRawData;
+                        groundTruthImuDataTabulate = tabulate(groundTruthImuRawData(:,1));
+                        groundTruthImuDataTabulateSorted = sortrows(groundTruthImuDataTabulate,2,'descend');
+                        if groundTruthImuDataTabulateSorted(1,2) >= 2
+                            duplicateData = groundTruthImuDataTabulateSorted(groundTruthImuDataTabulateSorted(:,2)>=2,:);
+                            duplicateDataSize = size(duplicateData,1);
+                            for duplicateDataCounter = 1:duplicateDataSize
+                                tDuplicateData = duplicateData(duplicateDataCounter,:);
+                                logMsg = sprintf('Duplicate data timestamp %.3f s, count %d',tDuplicateData(1),tDuplicateData(2));
+                                log2terminal('E',TAG,logMsg);
+                            end
+                            groundTruthImuData = unique(groundTruthImuRawData,'rows');
+                        end
+
                         smartPhoneImuGyroscopeData = readmatrix(tTrackSmartPhoneSensorGyroscopeUncalibratedFilePath);
                         smartPhoneImuAccelerometerData = readmatrix(tTrackSmartPhoneSensorAccelerometerUncalibratedFilePath);
 
@@ -92,9 +109,31 @@ for i = 1:cPreprocessTrackListLength
                         fineClipGroundTruthImuData = groundTruthImuData(groundTruthImuData(:,1) >= fineClipHeadTime & groundTruthImuData(:,1) <= fineClipTailTime,:);
                         plotComparedImuData(cVisualizeFineClipData,fineClipGroundTruthImuData,smartPhoneImuGyroscopeData,smartPhoneImuAccelerometerData);
 
+                        tTrackGroundTruthNavFilePath = fullfile(tDayZeroOClockAlignFolderPath,cTrackGroundTruthNavFileName);
+                        tTrackGroundTruthNavDataRaw = readmatrix(tTrackGroundTruthNavFilePath);
+                        tTrackGroundTruthNavData = tTrackGroundTruthNavDataRaw;
+                        tTrackGroundTruthNavDataSize = size(tTrackGroundTruthNavData,1);
+                        if isRecomputeTrackGroundTruthNavTime                            
+                            if tTrackGroundTruthNavData(1,1) == tTrackGroundTruthNavData(1,1)
+                                headTime = tTrackGroundTruthNavData(1,1);
+                            else
+                                headTime = tTrackGroundTruthNavData(1,1) + 0.005;
+                            end
+
+                            if tTrackGroundTruthNavData(tTrackGroundTruthNavDataSize-1,1) == tTrackGroundTruthNavData(tTrackGroundTruthNavDataSize,1)
+                                tailTime = tTrackGroundTruthNavData(tTrackGroundTruthNavDataSize,1) + 0.005;
+                            else
+                                tailTime = tTrackGroundTruthNavData(tTrackGroundTruthNavDataSize,1);
+                            end
+
+                            fixedTime = (headTime:0.005:tailTime)';
+                            tTrackGroundTruthNavData(:,1) = fixedTime;
+                        end
+
                         % Step: Visualize synchronized sensor data
-                        resampleHeadTime = ceil(fineClipReferenceHeadTime);
-                        resampleTailTime = floor(fineClipReferenceTailTime);
+                        groundTruthImuDataSize= size(groundTruthImuData,1);
+                        resampleHeadTime = ceil(max([fineClipReferenceHeadTime,groundTruthImuData(1,1),tTrackGroundTruthNavData(1,1)]));
+                        resampleTailTime = floor(min([fineClipReferenceTailTime,groundTruthImuData(groundTruthImuDataSize,1),tTrackGroundTruthNavData(tTrackGroundTruthNavDataSize,1)]));
                         resampleRate = 200;
                         resampleInterval = 1 / resampleRate;
                         resampleTime = (resampleHeadTime:resampleInterval:resampleTailTime)';
@@ -104,9 +143,11 @@ for i = 1:cPreprocessTrackListLength
                         resampledSmartPhoneAccelerometerData = interp1(smartPhoneImuAccelerometerData(:,2),smartPhoneImuAccelerometerData(:,4:6),resampleTime);
                         plotComparedResampledData(1,resampleTime,resampledGroundTruthAccelerometerData,resampledSmartPhoneAccelerometerData);
 
+                        % 
+                        cSynchronizationAxis = 2;
                         if cVisualizeGlobalSynchronization
-                            globalSynchronizeTimeIndex = -15;
-                            analysisGlobalSynchronizeTimeIndexRadius = 10;
+                            globalSynchronizeTimeIndex = -18;
+                            analysisGlobalSynchronizeTimeIndexRadius = 50;
                             analysisGlobalSynchronizeTimeIndexListHead = globalSynchronizeTimeIndex - analysisGlobalSynchronizeTimeIndexRadius;
                             analysisGlobalSynchronizeTimeIndexListTail = globalSynchronizeTimeIndex + analysisGlobalSynchronizeTimeIndexRadius;
                             analysisGlobalSynchronizeTimeIndexList = (analysisGlobalSynchronizeTimeIndexListHead:analysisGlobalSynchronizeTimeIndexListTail)';
@@ -115,18 +156,18 @@ for i = 1:cPreprocessTrackListLength
                             for k = 1:analysisGlobalSynchronizeTimeIndexListSize
                                 tGlobalSynchronizeTimeIndex = analysisGlobalSynchronizeTimeIndexList(k);
                                 if tGlobalSynchronizeTimeIndex < 0
-                                    xcorrDataX = resampledGroundTruthAccelerometerData(-tGlobalSynchronizeTimeIndex:resampleTimeSize,3);
-                                    xcorrDataY = resampledSmartPhoneAccelerometerData(1:(resampleTimeSize+tGlobalSynchronizeTimeIndex+1),3);
+                                    xcorrDataX = resampledGroundTruthAccelerometerData(-tGlobalSynchronizeTimeIndex:resampleTimeSize,cSynchronizationAxis);
+                                    xcorrDataY = resampledSmartPhoneAccelerometerData(1:(resampleTimeSize+tGlobalSynchronizeTimeIndex+1),cSynchronizationAxis);
                                 else
-                                    xcorrDataX = resampledGroundTruthAccelerometerData(1:(resampleTimeSize-tGlobalSynchronizeTimeIndex),3);
-                                    xcorrDataY = resampledSmartPhoneAccelerometerData(tGlobalSynchronizeTimeIndex+1:resampleTimeSize,3);
+                                    xcorrDataX = resampledGroundTruthAccelerometerData(1:(resampleTimeSize-tGlobalSynchronizeTimeIndex),cSynchronizationAxis);
+                                    xcorrDataY = resampledSmartPhoneAccelerometerData(tGlobalSynchronizeTimeIndex+1:resampleTimeSize,cSynchronizationAxis);
                                 end
                                 [xcorrDataR,xcorrDataLags] = xcorr(xcorrDataX,xcorrDataY,'normalized');
                                 xcorrDataRMax = max(xcorrDataR);
                                 xcorrDataRMaxIndex = find(xcorrDataR == xcorrDataRMax);
                                 xcorrDataRMaxLag = xcorrDataLags(xcorrDataRMaxIndex);
-                                %                         figure;
-                                %                         stem(xcorrDataLags,xcorrDataR);
+                                                        % figure;
+                                                        % stem(xcorrDataLags,xcorrDataR);
                                 globalSynchronizeTimeIndexStatistic(k,1) = tGlobalSynchronizeTimeIndex;
                                 globalSynchronizeTimeIndexStatistic(k,2) = xcorrDataRMaxLag;
                                 globalSynchronizeTimeIndexStatistic(k,3) = tGlobalSynchronizeTimeIndex-xcorrDataRMaxLag;
@@ -146,9 +187,9 @@ for i = 1:cPreprocessTrackListLength
                         end
 
                         if cVisualizeLocalSynchronization
-                            analysisCorrelationTimeLength = 5;
+                            analysisCorrelationTimeLength = 3;
                             analysisCorrelationSampleLength = analysisCorrelationTimeLength * resampleRate;
-                            analysisSampleHeadTime = 25959;
+                            analysisSampleHeadTime = 14427;
                             analysisSampleHeadIndex = find(resampleTime == analysisSampleHeadTime);
                             analysisSampleTailIndex = analysisSampleHeadIndex + analysisCorrelationSampleLength - 1;
                             analysisSampleIndex = analysisSampleHeadIndex:analysisSampleTailIndex;
@@ -156,8 +197,8 @@ for i = 1:cPreprocessTrackListLength
                             analysisResampledGroundTruthAccelerometerData = resampledGroundTruthAccelerometerData(analysisSampleIndex,:);
 
                             % Analyze the xcorr value around the synchronization offset
-                            synchronizeTimeIndex = -15;
-                            analysisSynchronizeTimeIndexRadius = 30;
+                            synchronizeTimeIndex = globalSynchronizeTimeIndex;
+                            analysisSynchronizeTimeIndexRadius = 50;
                             analysisSynchronizeTimeIndexListHead = synchronizeTimeIndex - analysisSynchronizeTimeIndexRadius;
                             analysisSynchronizeTimeIndexListTail = synchronizeTimeIndex + analysisSynchronizeTimeIndexRadius;
                             analysisSynchronizeTimeIndexList = (analysisSynchronizeTimeIndexListHead:analysisSynchronizeTimeIndexListTail)';
@@ -167,11 +208,11 @@ for i = 1:cPreprocessTrackListLength
                                 tSynchronizeTimeIndex = analysisSynchronizeTimeIndexList(k);
                                 analysisResampledSmartPhoneAccelerometerData = resampledSmartPhoneAccelerometerData(analysisSampleIndex+tSynchronizeTimeIndex,:);
 
-                                analysisXCorrDataX = analysisResampledGroundTruthAccelerometerData(:,3);
-                                analysisXCorrDataY = analysisResampledSmartPhoneAccelerometerData(:,3);
+                                analysisXCorrDataX = analysisResampledGroundTruthAccelerometerData(:,cSynchronizationAxis);
+                                analysisXCorrDataY = analysisResampledSmartPhoneAccelerometerData(:,cSynchronizationAxis);
                                 [analysisXCorrDataR,analysisXCorrDataLags] = xcorr(analysisXCorrDataX,analysisXCorrDataY,'normalized');
 
-                                if tSynchronizeTimeIndex == -115
+                                if tSynchronizeTimeIndex == synchronizeTimeIndex
                                     plotComparedResampledData(1,analysisResampleTime,analysisResampledGroundTruthAccelerometerData,analysisResampledSmartPhoneAccelerometerData);
                                     figure;
                                     stem(analysisXCorrDataLags,analysisXCorrDataR);
@@ -203,9 +244,11 @@ for i = 1:cPreprocessTrackListLength
 
 
                         % Interpolate train data
-                        tTrackGroundTruthNavFilePath = fullfile(tDayZeroOClockAlignFolderPath,cTrackGroundTruthNavFileName);
-                        tTrackGroundTruthNavData = readmatrix(tTrackGroundTruthNavFilePath);
-                        synchronizeTimeBias = 15;
+                        synchronizeTimeBias = 18;
+
+                        logMsg = sprintf('Date %s, track %s, phone %s, synchronize time bias %.3f s',cDatasetCollectionDate,tTrackFolderNameStr,tTrackSmartPhoneFolderNameChar,synchronizeTimeBias * resampleInterval);
+                        log2terminal('I',TAG,logMsg);
+
                         synchronizedData = zeros(resampleTimeSize,1+6+6+9+3+3);
                         synchronizedData(:,1) = resampleTime + synchronizeTimeBias * resampleInterval;
                         synchronizedData(:,2:4) = interp1(smartPhoneImuGyroscopeData(:,2),smartPhoneImuGyroscopeData(:,4:6),resampleTime);
@@ -220,8 +263,8 @@ for i = 1:cPreprocessTrackListLength
                         writematrix(synchronizedData,cTrackSynchronizedFilePath);
                     end
 
-                    logMsg = sprintf('D');
-                    log2terminal('D',TAG,logMsg);
+                    % logMsg = sprintf('D');
+                    % log2terminal('D',TAG,logMsg);
                 end
             end
         end
