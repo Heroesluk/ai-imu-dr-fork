@@ -20,27 +20,38 @@ NS2US = 1/US2NS;
 % cDatasetFolderPath = 'C:\DoctorRelated\20230410重庆VDR数据采集';
 cDatasetFolderPath = 'E:\DoctorRelated\20230410重庆VDR数据采集';
 % TODO: S1.2: 配置数据集存储文件夹 采集日期
-cDatasetCollectionDate = '2023_04_10';
+% cDatasetCollectionDate = '2023_04_10';
+% cDatasetCollectionDate = '2023_04_13';
+cDatasetCollectionDate = '2023_04_15'
 % 添加预处理粗分割文件夹路径
 cReorganizedFolderName = 'Reorganized';
 cReorganizedFolderPath = fullfile(cDatasetFolderPath,cDatasetCollectionDate,cReorganizedFolderName);
 % TODO: S1.3: 配置数据集存储文件夹 采集轨迹编号
-cPreprocessTrackList = ["0009"];
+% cPreprocessTrackList = ["0001" "0002" "0003" "0004" "0005" "0006" "0007" "0008" "0009" "0010" "0011" "0012" "0013" "0014" "0015" "0016" "0017" "0018" "0019" "0020" "0021" "0022" "0023"];
+cPreprocessTrackList = ["0002" "0003" "0004" "0005" "0006" "0007" "0008" "0009"];
 cPreprocessTrackListLength = length(cPreprocessTrackList);
 % TODO: S1.4: 配置数据集存储文件夹 采集手机
-cPhoneMapNumber = ["HUAWEI_Mate30"];
+% cPhoneMapNumber = ["GOOGLE_Pixel3"];
+% cPhoneMapNumber = ["HUAWEI_Mate30"];
+% cPhoneMapNumber = ["HUAWEI_P20"];
 % cPhoneMapNumber = ["GOOGLE_Pixel3" "HUAWEI_Mate30"];
-% cPhoneMapNumber = ["GOOGLE_Pixel3" "HUAWEI_Mate30" "HUAWEI_P20"];
+cPhoneMapNumber = ["GOOGLE_Pixel3" "HUAWEI_Mate30" "HUAWEI_P20"];
 kPhoneMapNumberLength = length(cPhoneMapNumber);
 
 % TODO: S2.1: 配置导航坐标系参考真值文件路径
 % Load Novatel SPAN data
 cGpsWeek = 2257;
-cReferenceNovatelSpanDataFilePath = 'E:\DoctorRelated\20230410重庆VDR数据采集\2023_04_10\重大数据\SPAN\IMU位置车体姿态\3-车体坐标系-IMU位置-gps.csv';
+% cReferenceNovatelSpanDataFilePath = 'E:\DoctorRelated\20230410重庆VDR数据采集\2023_04_10\重大数据\SPAN\IMU位置车体姿态\3-车体坐标系-IMU位置-gps.csv';
+% cReferenceNovatelSpanDataFilePath = 'E:\DoctorRelated\20230410重庆VDR数据采集\2023_04_13\20230413\上午数据\SPAN\车体姿态IMU位置\车体姿态-IMU位置-200HZ-gps.csv';
+% cReferenceNovatelSpanDataFilePath = 'E:\DoctorRelated\20230410重庆VDR数据采集\2023_04_13\20230413\下午数据\中绿江州\SPAN\IMU位置车体姿态\IMU位置-车体姿态-200Hz-gps.csv';
+cReferenceNovatelSpanDataFilePath = 'E:\DoctorRelated\20230410重庆VDR数据采集\2023_04_15\20230415\SPAN\车体姿态IMU位置\车体姿态-IMU位置-gps.csv';
 novatelSpanData = loadSpanPostDataWithZeroOClockTime(cReferenceNovatelSpanDataFilePath,cGpsWeek,cDatasetCollectionDate);
 % TODO: S2.2: 配置时间同步参考IMU文件路径
 % Load JZ-MINS200 data
-cReferenceJZMINS200DataFilePath = 'E:\DoctorRelated\20230410重庆VDR数据采集\2023_04_10\重大数据\九州数据\九洲设备-COM4-2023_4_10_14-17-17-imu.csv';
+% cReferenceJZMINS200DataFilePath = 'E:\DoctorRelated\20230410重庆VDR数据采集\2023_04_10\重大数据\九州数据\九洲设备-COM4-2023_4_10_14-17-17-imu.csv';
+% cReferenceJZMINS200DataFilePath = 'E:\DoctorRelated\20230410重庆VDR数据采集\2023_04_13\20230413\上午数据\九洲数据\九洲设备-imu.csv';
+% cReferenceJZMINS200DataFilePath = 'E:\DoctorRelated\20230410重庆VDR数据采集\2023_04_13\20230413\下午数据\中绿江州\九洲原始数据\九洲设备-imu.csv';
+cReferenceJZMINS200DataFilePath = 'E:\DoctorRelated\20230410重庆VDR数据采集\2023_04_15\20230415\九州数据\ReceivedTofile-COM4-2023_4_15_14-30-20-imu.csv';
 jZMINS200Data = loadJzMins200DataWithZeroOClockTime(cReferenceJZMINS200DataFilePath,cGpsWeek,cDatasetCollectionDate);
 
 % 添加输入原始数据集存储文件夹
@@ -96,7 +107,6 @@ for i = 1:cPreprocessTrackListLength
 
                                     if isfile(tSensorFilePath)
                                         tSensorRawData = readmatrix(tSensorFilePath);
-                                        tSensorRawDataRows = size(tSensorRawData,2);
                                         tSensorRawDataColumns = size(tSensorRawData,2);
                                         % GNSS sensor data need to be handled separately
                                         if strcmp(tSensorFileName,kGnssLocationFileNameString)
@@ -105,7 +115,7 @@ for i = 1:cPreprocessTrackListLength
                                             if isReplaceGpsTimeBase
                                                 tSensorGnssMeasurementFilePath = fullfile(tTrackSmartPhoneFolderPath,kRawFolderName,kGnssMeasurementFileNameString);
                                                 tSensorGnssMeasurementRawData = readmatrix(tSensorGnssMeasurementFilePath);
-                                                tSensorRawDataSysClockSensorEventTime = tSensorGnssMeasurementRawData(:,1) * MS2S;
+                                                tSensorGnssMeasurementRawDataSysClockSensorEventTime = tSensorGnssMeasurementRawData(:,1);
                                                 tSensorGnssMeasurementRawDataGpsClockBaseSensorEventTime = tSensorGnssMeasurementRawData(:,4) - (tSensorGnssMeasurementRawData(:,6) + tSensorGnssMeasurementRawData(:,7)) - tSensorGnssMeasurementRawData(:,2);
                                                 tEstimatedGpsClockBaseSensorEventTime = interp1(tSensorGnssMeasurementRawDataSysClockSensorEventTime,tSensorGnssMeasurementRawDataGpsClockBaseSensorEventTime,tSensorRawData(:,1),'linear','extrap');
                                                 tSensorRawDataGpsClockSensorEventTime = (tEstimatedGpsClockBaseSensorEventTime + tSensorRawData(:,5)) * NS2S;
@@ -164,8 +174,19 @@ for i = 1:cPreprocessTrackListLength
                         zClipReferenceHeadTime = min(tTrackPhoneStatisticMatrix(:,tTrackPhoneStatisticMatrixColumns-1));
                         zClipReferenceTailTime = max(tTrackPhoneStatisticMatrix(:,tTrackPhoneStatisticMatrixColumns));
 
-                        zClipHeadTime = floor(zClipReferenceHeadTime/60) * 60;
-                        zClipTailTime = ceil(zClipReferenceTailTime/60) * 60;
+                        zClipReferenceHeadTimeString = convertDaySecondsToString(zClipReferenceHeadTime,0);
+                        zClipReferenceTailTimeString = convertDaySecondsToString(zClipReferenceTailTime,0);
+                        logMsg = sprintf('Track %s, phone %s, clip reference time from %s to %s',tTrackFolderNameStr,tTrackSmartPhoneFolderNameChar,zClipReferenceHeadTimeString,zClipReferenceTailTimeString);
+                        log2terminal('I',TAG,logMsg);
+
+                        zClipHeadTime = (floor(zClipReferenceHeadTime/60) - 1) * 60;
+                        zClipTailTime = (ceil(zClipReferenceTailTime/60) + 1) * 60;
+
+                        zClipHeadTimeString = convertDaySecondsToString(zClipHeadTime,0);
+                        zClipTailTimeString = convertDaySecondsToString(zClipTailTime,0);
+                        logMsg = sprintf('Track %s, phone %s, clip coarse time from %s to %s',tTrackFolderNameStr,tTrackSmartPhoneFolderNameChar,zClipHeadTimeString,zClipTailTimeString);
+                        log2terminal('I',TAG,logMsg);
+
                         zGroundTruthNavData = novatelSpanData(novatelSpanData(:,1) >= zClipHeadTime & novatelSpanData(:,1) <= zClipTailTime,:);
                         zGroundTruthImuData = jZMINS200Data(jZMINS200Data(:,1) >= zClipHeadTime & jZMINS200Data(:,1) <= zClipTailTime,:);
                         writematrix(zGroundTruthNavData,tTrackGroundTruthNavFilePath);
@@ -175,7 +196,7 @@ for i = 1:cPreprocessTrackListLength
             end
         end
         % Tail statistic of track
-        logMsg = sprintf('Statistic track %s', tTrackFolderNameStr);
+        logMsg = sprintf('Finish coarse clip track %s', tTrackFolderNameStr);
         log2terminal('I',TAG,logMsg);
 
     else
