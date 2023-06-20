@@ -1,21 +1,63 @@
+% 重置工作区环境
 clearvars;
 close all;
 dbstop error;
 % clc;
+
+% 添加自定义工具类函数
 addpath(genpath(pwd));
+TAG = 'CustomViewerInvariantExtendedKalmanFilter';
 
 SCRIPT_MODE = 0;
 
-TAG = 'CustomViewerInvariantExtendedKalmanFilter';
 
-cSpanDatasetFolderPath = 'C:\Users\QIAN LONG\Downloads\20230301\车载数据';
-cSpanDatasetResampledDataFileName = 'ResampledInsData.mat';
-cSpanDatasetResampledDataFilePath = fullfile(cSpanDatasetFolderPath,'SPAN',cSpanDatasetResampledDataFileName);
-load(cSpanDatasetResampledDataFilePath);
+% TODO: S1.1: 模型输入预处理文件夹 根目录
+% cDatasetFolderPath = 'C:\DoctorRelated\20230410重庆VDR数据采集';
+cDatasetFolderPath = 'E:\DoctorRelated\20230410重庆VDR数据采集';
+% TODO: S1.2: 模型输入预处理文件夹 采集日期
+cDatasetCollectionDateFolderName = '2023_04_10';
+% cDatasetCollectionDateFolderName = '2023_04_11';
+% cDatasetCollectionDateFolderName = '2023_04_13';
+% cDatasetCollectionDateFolderName = '2023_04_15';
+ccDatasetCollectionDateFolderPath = fullfile(cDatasetFolderPath,cDatasetCollectionDateFolderName);
+% 配置预处理根文件夹路径
+cReorganizedFolderName = 'Reorganized';
+cReorganizedFolderPath = fullfile(ccDatasetCollectionDateFolderPath,cReorganizedFolderName);
+% TODO: S1.3: 模型输入预处理文件夹 采集轨迹编号
+% cPreprocessTrackFolderName = '0002';
+% cPreprocessTrackFolderName = '0003';
+% cPreprocessTrackFolderName = '0004';
+% cPreprocessTrackFolderName = '0005';
+% cPreprocessTrackFolderName = '0006';
+% cPreprocessTrackFolderName = '0007';
+cPreprocessTrackFolderName = '0008';
+% cPreprocessTrackFolderName = '0009';
+% cPreprocessTrackFolderName = '0010';
+% cPreprocessTrackFolderName = '0011';
+% cPreprocessTrackFolderName = '0012';
+% cPreprocessTrackFolderName = '0013';
+% cPreprocessTrackFolderName = '0014';
+% cPreprocessTrackFolderName = '0015';
+% cPreprocessTrackFolderName = '0016';
+% cPreprocessTrackFolderName = '0017';
+% cPreprocessTrackFolderName = '0018';
+% cPreprocessTrackFolderName = '0019';
+% cPreprocessTrackFolderName = '0020';
+% cPreprocessTrackFolderName = '0021';
+% cPreprocessTrackFolderName = '0022';
+% cPreprocessTrackFolderName = '0023';
+cPreprocessTrackFolderPath = fullfile(cReorganizedFolderPath,cPreprocessTrackFolderName);
+% TODO: S1.4: 模型输入预处理文件夹 采集手机
+% cPreprocessPhoneFolderName = 'GOOGLE_Pixel3';
+cPreprocessPhoneFolderName = 'HUAWEI_Mate30';
+% cPreprocessPhoneFolderName = 'HUAWEI_P20';
+cPreprocessPhoneFolderPath = fullfile(cPreprocessTrackFolderPath,cPreprocessPhoneFolderName);
+% 配置预处理模型输入文件夹路径
+cDayZeroOClockAlignFolderName = 'dayZeroOClockAlign';
+cDayZeroOClockAlignFolderPath = fullfile(cPreprocessPhoneFolderPath,cDayZeroOClockAlignFolderName);
 
-cTrainDatasetFolderPath = 'E:\DoctorRelated\20230410重庆VDR数据采集\2023_04_10\Reorganized\0008\HUAWEI_Mate30\dayZeroOClockAlign';
-% cTrainDatasetFolderPath = 'E:\DoctorRelated\20230410重庆VDR数据采集\2023_04_10\Reorganized\0008\GOOGLE_Pixel3\dayZeroOClockAlign';
-% cTrainDatasetFolderPath = 'E:\DoctorRelated\20230410重庆VDR数据采集\2023_04_10\Reorganized\0009\GOOGLE_Pixel3\dayZeroOClockAlign';
+% 配置预处理模型输入内部文件名
+cTrainDatasetFolderPath = cDayZeroOClockAlignFolderPath;
 cTrainFileName = 'TrackSynchronized.mat';
 cTrainFilePath = fullfile(cTrainDatasetFolderPath,cTrainFileName);
 if ~isfile(cTrainFilePath)
@@ -46,10 +88,10 @@ else
     load(cTrainFilePath);
 end
 
-spanResampledData = trackSynchronizedData;
+spanResampledRawData = trackSynchronizedData;
 cCarCoordinateType = 'LFU';
 
-% TODO: S1.2: 自动加载基于深度学习的自适应参数
+% TODO: S2.1: 自动加载基于深度学习的自适应参数
 cDeepLearnedCovarianceAvailable = false;
 cDeepLearnedCovarianceUse = true;
 cDeepLearnedCovarianceTxtFileName = 'DeepLearnedCovariance.txt';
@@ -68,7 +110,7 @@ if isfile(cDeepLearnedCovarianceFilePath)
     end
 
     cDeepLearnedCovarianceCell = num2cell(cDeepLearnedCovariance);
-    spanResampledData = [trackSynchronizedData cDeepLearnedCovarianceCell];
+    spanResampledRawData = [trackSynchronizedData cDeepLearnedCovarianceCell];
 end
 
 
@@ -77,21 +119,28 @@ end
 % spanResampledData = tOxtslitePose;
 % cCarCoordinateType = 'FRU';
 
-spanResampledDataSize = size(spanResampledData,1);
-plotIndex = 1:spanResampledDataSize;
-measurementGyroscope = cell2mat(spanResampledData(plotIndex,4));
-measurementAccelerometer = cell2mat(spanResampledData(plotIndex,5));
-measurement = horzcat(measurementGyroscope,measurementAccelerometer);
+spanResampledRawDataSize = size(spanResampledRawData,1);
 
-headBiasEstimationIndex = 1:7000;
-headBiasEstimation = mean(measurement(headBiasEstimationIndex,:),1);
-tailBiasEstimationIndex = 24200:spanResampledDataSize;
-tailBiasEstimation = mean(measurement(tailBiasEstimationIndex,:),1);
-headtailBiasEstimation = vertcat(headBiasEstimation,tailBiasEstimation);
+% plotIndex = 1:spanResampledDataSize;
+% plotIndex = 1:10000;
+% measurementGyroscope = cell2mat(spanResampledData(plotIndex,4));
+% measurementAccelerometer = cell2mat(spanResampledData(plotIndex,5));
+% measurement = horzcat(measurementGyroscope,measurementAccelerometer);
 
-% spanResampledData = spanResampledData(2:spanResampledDataSize,:);
-% spanResampledData = spanResampledData(1200:spanResampledDataSize,:);
-spanResampledData = spanResampledData(6800:spanResampledDataSize,:);
+% headBiasEstimationIndex = 1:7000;
+% headBiasEstimation = mean(measurement(headBiasEstimationIndex,:),1);
+% tailBiasEstimationIndex = 24200:spanResampledDataSize;
+% tailBiasEstimation = mean(measurement(tailBiasEstimationIndex,:),1);
+% headtailBiasEstimation = vertcat(headBiasEstimation,tailBiasEstimation);
+
+% spanResampledData = spanResampledRawData(1:spanResampledRawDataSize,:);
+% spanResampledData = spanResampledRawData(1:45200,:);
+
+% spanResampledData = spanResampledRawData(11187:15187,:);
+spanResampledData = spanResampledRawData(12187:15187,:);
+
+% spanResampledData = spanResampledRawData(6800:spanResampledRawDataSize,:);
+% spanResampledData = spanResampledRawData(9000:10000,:);
 spanResampledDataSize = size(spanResampledData,1);
 
 % plotSEPose(spanResampledData(:,2),100);
@@ -155,33 +204,35 @@ filterIntermediateState{1,FIS_ACCELERATION_BIAS_SAVE_INDEX} = zeros(1,3);
 filterIntermediateState{1,FIS_SOBRACKET3_FROM_IMU_TO_CAR_SAVE_INDEX} = ROTATION_FROM_IMU_TO_CAR;
 filterIntermediateState{1,FIS_TRANSLATION_FROM_IMU_TO_CAR_SAVE_INDEX} = [0 0 0];
 
-% filterInitPSOBracket3XFromCarToNav = 1e-3;
-% filterInitPSOBracket3YFromCarToNav = 1e-3;
-% filterInitPSOBracket3ZFromCarToNav = 0;
-% filterInitPVelocityX = 0.3;
-% filterInitPVelocityY = 0.3;
-% filterInitPVelocityZ = 0;
-% filterInitPPosition = 0;
-% filterInitPAngularSpeedBias = 1e-4;
-% filterInitPAccelerationBias = 1e-3;
-% filterInitPSOBracket3FromImuToCar = 1e-4;
-% filterInitTranslationFromImuToCar = 1e-4;
-
-filterInitPSOBracket3XFromCarToNav = 9.976169901792044e-7;
-filterInitPSOBracket3YFromCarToNav = 9.976169901792044e-7;
-filterInitPSOBracket3ZFromCarToNav = 0;
-filterInitPVelocityX = 9.587787165425392e-2;
-filterInitPVelocityY = 9.587787165425392e-2;
-filterInitPVelocityZ = 0;
-filterInitPPosition = 0;
-filterInitPAngularSpeedBias = 1.0266331862460802e-8;
-filterInitPAccelerationBias = 1.0650391090838114e-3;
-filterInitPSOBracket3FromImuToCar = 0.8520880711399961e-6;
-filterInitTranslationFromImuToCar = 1.1907322664534727e-2;
-
 
 filterInitP = zeros(21);
 filterPSize = size(filterInitP,1);
+
+% TODO: S2.2: 自动加载基于深度学习的自适应参数
+filterInitPSOBracket3XFromCarToNav = 1e-6;
+filterInitPSOBracket3YFromCarToNav = 1e-6;
+filterInitPSOBracket3ZFromCarToNav = 0;
+filterInitPVelocityX = 1e-1;
+filterInitPVelocityY = 1e-1;
+filterInitPVelocityZ = 0;
+filterInitPPosition = 0;
+filterInitPAngularSpeedBias = 1e-8;
+filterInitPAccelerationBias = 1e-3;
+filterInitPSOBracket3FromImuToCar = 1e-5;
+filterInitTranslationFromImuToCar = 1e-2;
+cDeepLearnedInitStateCovarianceFactorTxtFileName = 'DeepLearnedInitStateCovarianceFactor.txt';
+cDeepLearnedInitStateCovarianceFactorTxtFilePath = fullfile(cTrainDatasetFolderPath,cDeepLearnedInitStateCovarianceFactorTxtFileName);
+if isfile(cDeepLearnedInitStateCovarianceFactorTxtFilePath)
+    deepLearnedInitStateCovarianceFactor = readmatrix(cDeepLearnedInitStateCovarianceFactorTxtFilePath);
+    filterInitPSOBracket3XFromCarToNav = filterInitPSOBracket3XFromCarToNav * deepLearnedInitStateCovarianceFactor(1);
+    filterInitPSOBracket3YFromCarToNav = filterInitPSOBracket3YFromCarToNav * deepLearnedInitStateCovarianceFactor(1);
+    filterInitPVelocityX = filterInitPVelocityX * deepLearnedInitStateCovarianceFactor(2);
+    filterInitPVelocityY = filterInitPVelocityY * deepLearnedInitStateCovarianceFactor(2);
+    filterInitPAngularSpeedBias = filterInitPAngularSpeedBias * deepLearnedInitStateCovarianceFactor(3);
+    filterInitPAccelerationBias = filterInitPAccelerationBias * deepLearnedInitStateCovarianceFactor(4);
+    filterInitPSOBracket3FromImuToCar = filterInitPSOBracket3FromImuToCar * deepLearnedInitStateCovarianceFactor(5);
+    filterInitTranslationFromImuToCar = filterInitTranslationFromImuToCar * deepLearnedInitStateCovarianceFactor(6);
+end
 filterInitP(1:3,1:3) = diag([filterInitPSOBracket3XFromCarToNav filterInitPSOBracket3YFromCarToNav filterInitPSOBracket3ZFromCarToNav]);
 filterInitP(4:6,4:6) = diag([filterInitPVelocityX filterInitPVelocityY filterInitPVelocityZ]);
 filterInitP(7:9,7:9) = eye(3) * filterInitPPosition;
@@ -193,25 +244,31 @@ filterIntermediateState{1,FIS_P_SAVE_INDEX} = filterInitP;
 
 filterInitQ = zeros(18);
 filterQSize = size(filterInitQ,1);
-% noiseAngularSpeedCovariance = 1.4e-2;
-% noiseAccelerometerCovariance = 3e-2;
-% noiseAngularSpeedBiasCovariance = 1e-4;
-% noiseAccelerometerBiasCovariance = 1e-3;
-% noiseSOBracket3FromImuToCar = 1e-4;
-% noiseTransitionFromImuToCar = 1e-4;
 
-noiseAngularSpeedCovariance = 2e-4 * 1.1075919491227058;
-noiseAccelerometerCovariance = 1e-3 * 1.0049557309569503;
-noiseAngularSpeedBiasCovariance = 1e-8 * 0.9623584997031945;
-noiseAccelerometerBiasCovariance = 1e-6 * 0.9374736770130291;
-noiseSOBracket3FromImuToCar = 1e-8 * 1.0851318062146436;
-noiseTransitionFromImuToCar = 1e-8 * 1.04589437036849;
-filterInitQ(1:3,1:3) = eye(3) * noiseAngularSpeedCovariance;
-filterInitQ(4:6,4:6) = eye(3) * noiseAccelerometerCovariance;
-filterInitQ(7:9,7:9) = eye(3) * noiseAngularSpeedBiasCovariance;
-filterInitQ(10:12,10:12) = eye(3) * noiseAccelerometerBiasCovariance;
-filterInitQ(13:15,13:15) = eye(3) * noiseSOBracket3FromImuToCar;
-filterInitQ(16:18,16:18) = eye(3) * noiseTransitionFromImuToCar;
+% TODO: S2.3: 自动加载基于深度学习的自适应参数
+cNoiseAngularSpeedCovariance = 2e-4;
+cNoiseAccelerometerCovariance = 1e-3;
+cNoiseAngularSpeedBiasCovariance = 1e-8;
+cNoiseAccelerometerBiasCovariance = 1e-6;
+cNoiseSOBracket3FromImuToCar = 1e-8;
+cNoiseTransitionFromImuToCar = 1e-8;
+cDeepLearnedQCovarianceFactorTxtFileName = 'DeepLearnedQCovarianceFactor.txt';
+cDeepLearnedQCovarianceFactorTxtFilePath = fullfile(cTrainDatasetFolderPath,cDeepLearnedQCovarianceFactorTxtFileName);
+if isfile(cDeepLearnedQCovarianceFactorTxtFilePath)
+    deepLearnedQCovarianceFactor = readmatrix(cDeepLearnedQCovarianceFactorTxtFilePath);
+    cNoiseAngularSpeedCovariance = cNoiseAngularSpeedCovariance * deepLearnedQCovarianceFactor(1);
+    cNoiseAccelerometerCovariance = cNoiseAccelerometerCovariance * deepLearnedQCovarianceFactor(2);
+    cNoiseAngularSpeedBiasCovariance = cNoiseAngularSpeedBiasCovariance * deepLearnedQCovarianceFactor(3);
+    cNoiseAccelerometerBiasCovariance = cNoiseAccelerometerBiasCovariance * deepLearnedQCovarianceFactor(4);
+    cNoiseSOBracket3FromImuToCar = cNoiseSOBracket3FromImuToCar * deepLearnedQCovarianceFactor(5);
+    cNoiseTransitionFromImuToCar = cNoiseTransitionFromImuToCar * deepLearnedQCovarianceFactor(6);
+end
+filterInitQ(1:3,1:3) = eye(3) * cNoiseAngularSpeedCovariance;
+filterInitQ(4:6,4:6) = eye(3) * cNoiseAccelerometerCovariance;
+filterInitQ(7:9,7:9) = eye(3) * cNoiseAngularSpeedBiasCovariance;
+filterInitQ(10:12,10:12) = eye(3) * cNoiseAccelerometerBiasCovariance;
+filterInitQ(13:15,13:15) = eye(3) * cNoiseSOBracket3FromImuToCar;
+filterInitQ(16:18,16:18) = eye(3) * cNoiseTransitionFromImuToCar;
 filterIntermediateState{1,FIS_Q_SAVE_INDEX} = filterInitQ;
 
 measurementCovarianceR = zeros(2);
@@ -257,7 +314,8 @@ if SCRIPT_MODE == 0
     zlabel('z');
     pAxisLineWidth = 1;
 
-    % 吉利 新豪越
+    % 吉利 新豪越 
+    % 轴距 2.815 m
     cCarCoordinateAxisDisplayTimeInterval = 1;
     cCarCoordinateAxisSampleCountInterval = cCarCoordinateAxisDisplayTimeInterval * cSampleRate;
     pCarXLength = 1.900;
@@ -358,25 +416,51 @@ for i =2:spanResampledDataSize
     % State X7
     propagateState7Transition = filterState7Transition';
     % State Covariance
-    propagateStateCovarianceTransitionPhi = eye(size(filterState8StateCovariance));
-    propagateStateCovarianceTransitionPhi(4:6,1:3) = SKEW_GRAVITY * dt;
-    propagateStateCovarianceTransitionPhi(7:9,1:3) = 0.5 * SKEW_GRAVITY * dtdt;
-    propagateStateCovarianceTransitionPhi(7:9,4:6) = eye(3) * dt;
-    propagateStateCovarianceTransitionPhi(1:3,10:12) = - filterState1Rotation * propagateState1Gamma1Phi * dt;
-    propagateStateCovarianceTransitionPhi(4:6,10:12) = skew(propagateState2VelocityEstimation) * propagateStateCovarianceTransitionPhi(1:3,10:12) + filterState1Rotation * uppercaseGreekLetterPsiSubscript1(propagateState1AngulerSpeed,propagateState2AccelerationEstimation,dt);
-    propagateStateCovarianceTransitionPhi(7:9,10:12) = skew(propagateState3TranslationEstimation) * propagateStateCovarianceTransitionPhi(1:3,10:12) + filterState1Rotation * uppercaseGreekLetterPsiSubscript2(propagateState1AngulerSpeed,propagateState2AccelerationEstimation,dt);
-    propagateStateCovarianceTransitionPhi(4:6,13:15) = propagateStateCovarianceTransitionPhi(1:3,10:12);
-    propagateStateCovarianceTransitionPhi(7:9,13:15) = - filterState1Rotation * propagateState1Gamma2Phi * dt;
+    % propagateStateCovarianceTransitionPhi = eye(size(filterState8StateCovariance));
+    % propagateStateCovarianceTransitionPhi(4:6,1:3) = SKEW_GRAVITY * dt;
+    % propagateStateCovarianceTransitionPhi(7:9,1:3) = 0.5 * SKEW_GRAVITY * dtdt;
+    % propagateStateCovarianceTransitionPhi(7:9,4:6) = eye(3) * dt;
+    % propagateStateCovarianceTransitionPhi(1:3,10:12) = - filterState1Rotation * propagateState1Gamma1Phi * dt;
+    % propagateStateCovarianceTransitionPhi(4:6,10:12) = skew(propagateState2VelocityEstimation) * propagateStateCovarianceTransitionPhi(1:3,10:12) + filterState1Rotation * uppercaseGreekLetterPsiSubscript1(propagateState1AngulerSpeed,propagateState2AccelerationEstimation,dt);
+    % propagateStateCovarianceTransitionPhi(7:9,10:12) = skew(propagateState3TranslationEstimation) * propagateStateCovarianceTransitionPhi(1:3,10:12) + filterState1Rotation * uppercaseGreekLetterPsiSubscript2(propagateState1AngulerSpeed,propagateState2AccelerationEstimation,dt);
+    % propagateStateCovarianceTransitionPhi(4:6,13:15) = propagateStateCovarianceTransitionPhi(1:3,10:12);
+    % propagateStateCovarianceTransitionPhi(7:9,13:15) = - filterState1Rotation * propagateState1Gamma2Phi * dt;
+    % propagateStateCovarianceTransitionAdjoint = zeros(filterPSize,filterQSize);
+    % propagateStateCovarianceTransitionAdjoint(1:3,1:3) = filterState1Rotation;
+    % propagateStateCovarianceTransitionAdjoint(4:6,1:3) = skew(propagateState2VelocityEstimation) * propagateStateCovarianceTransitionAdjoint(1:3,1:3);
+    % propagateStateCovarianceTransitionAdjoint(7:9,1:3) = skew(propagateState3TranslationEstimation) * propagateStateCovarianceTransitionAdjoint(1:3,1:3);
+    % propagateStateCovarianceTransitionAdjoint(4:6,4:6) = propagateStateCovarianceTransitionAdjoint(1:3,1:3);
+    % propagateStateCovarianceTransitionAdjoint(10:21,7:18) = eye(12);
+    % propagateNoiseCovariance = propagateStateCovarianceTransitionAdjoint * filterState9NoiseCovariance * propagateStateCovarianceTransitionAdjoint';
+    % propagateStateCovariance = propagateStateCovarianceTransitionPhi * filterState8StateCovariance * propagateStateCovarianceTransitionPhi' ...
+    %     + propagateNoiseCovariance;
+
+
+    propagateStateCovarianceTransitionF = zeros(size(filterState8StateCovariance));
+    propagateStateCovarianceTransitionF(4:6,1:3) = SKEW_GRAVITY;
+    propagateStateCovarianceTransitionF(7:9,4:6) = eye(3);
+    propagateStateCovarianceTransitionF(1:3,10:12) = - filterState1Rotation;
+    propagateStateCovarianceTransitionF(4:6,10:12) = - skew(propagateState2VelocityEstimation) * filterState1Rotation;
+    propagateStateCovarianceTransitionF(7:9,10:12) = - skew(propagateState3TranslationEstimation) * filterState1Rotation;
+    propagateStateCovarianceTransitionF(4:6,13:15) = - filterState1Rotation;
+    propagateStateCovarianceTransitionFdt = propagateStateCovarianceTransitionF .* dt;
+    propagateStateCovarianceTransitionFdtFdt = propagateStateCovarianceTransitionFdt * propagateStateCovarianceTransitionFdt;
+    propagateStateCovarianceTransitionFdtFdtFdt = propagateStateCovarianceTransitionFdtFdt * propagateStateCovarianceTransitionFdt;
+
     propagateStateCovarianceTransitionAdjoint = zeros(filterPSize,filterQSize);
     propagateStateCovarianceTransitionAdjoint(1:3,1:3) = filterState1Rotation;
-    propagateStateCovarianceTransitionAdjoint(4:6,1:3) = skew(propagateState2VelocityEstimation) * propagateStateCovarianceTransitionAdjoint(1:3,1:3);
-    propagateStateCovarianceTransitionAdjoint(7:9,1:3) = skew(propagateState3TranslationEstimation) * propagateStateCovarianceTransitionAdjoint(1:3,1:3);
-    propagateStateCovarianceTransitionAdjoint(4:6,4:6) = propagateStateCovarianceTransitionAdjoint(1:3,1:3);
+    propagateStateCovarianceTransitionAdjoint(4:6,1:3) = skew(propagateState2VelocityEstimation) * filterState1Rotation;
+    propagateStateCovarianceTransitionAdjoint(7:9,1:3) = skew(propagateState3TranslationEstimation) * filterState1Rotation;
+    propagateStateCovarianceTransitionAdjoint(4:6,4:6) = filterState1Rotation;
     propagateStateCovarianceTransitionAdjoint(10:21,7:18) = eye(12);
-    propagateNoiseCovariance = propagateStateCovarianceTransitionAdjoint * filterState9NoiseCovariance * propagateStateCovarianceTransitionAdjoint';
-    propagateStateCovariance = propagateStateCovarianceTransitionPhi * filterState8StateCovariance * propagateStateCovarianceTransitionPhi' ...
-        + propagateNoiseCovariance;
+    propagateStateCovarianceTransitionAdjointdt = propagateStateCovarianceTransitionAdjoint * dt;
+    propagateNoiseCovariance = propagateStateCovarianceTransitionAdjointdt * filterState9NoiseCovariance * propagateStateCovarianceTransitionAdjointdt';
 
+    propagateStateCovarianceTransitionPhi = eye(size(filterState8StateCovariance)) + propagateStateCovarianceTransitionFdt + (1/2) .* propagateStateCovarianceTransitionFdtFdt + (1/6) .* propagateStateCovarianceTransitionFdtFdtFdt;
+    propagateStateCovariance = propagateStateCovarianceTransitionPhi * (filterState8StateCovariance + propagateNoiseCovariance) * propagateStateCovarianceTransitionPhi';
+
+
+    
 %     filterIntermediateState{i,FIS_SEBRACKET3_SAVE_INDEX} = SE3(propagateState1RotationEstimation,propagateState3TranslationEstimation).double;
 %     filterIntermediateState{i,FIS_SOBRACKET3_FROM_IMU_TO_NAV_SAVE_INDEX} = propagateState1RotationEstimation;
 %     filterIntermediateState{i,FIS_VELOCITY_IN_NAV_SAVE_INDEX} = (propagateState2VelocityEstimation)';
@@ -445,8 +529,8 @@ for i =2:spanResampledDataSize
     updateState2Velocity = updateStateSESubscript4Bracket3DeltaRotation * propagateState2VelocityEstimation + updateStateSESubscript4Bracket3DeltaVelocityInNav;
     
     % updateState2VelocityNorm = norm(updateState2Velocity);
-    % limitSpeed = 3;
-    % limitVerticalSpeed = 0.8;
+    % limitSpeed = 15;
+    % limitVerticalSpeed = 0.5;
     % if updateState2VelocityNorm > limitSpeed
     %     updateState2Velocity = updateState2Velocity * limitSpeed / updateState2VelocityNorm;
     % 
@@ -512,6 +596,12 @@ for i =2:spanResampledDataSize
         if i == 2 || mod(i,cCarStateVelocitySampleCountInterval) == 0
             pState2Velocity = filterState2Velocity;
             vc = pSEBracket3FromC2N(1:3,1:3)' * pState2Velocity;
+
+            % if vc(2) < -0.2
+            %     logMsg = sprintf('%f',vc(2));
+            %     log2terminal('D',TAG,logMsg);
+            % end
+
             % vc = vc ./ max(abs(vc));
             A = [0 0 0 1; pCarStateVelocityLineLengthRatio*vc(1) 0 0 1; 0 0 0 1; 0 pCarStateVelocityLineLengthRatio*vc(2) 0 1; 0 0 0 1; 0 0 pCarStateVelocityLineLengthRatio*vc(3) 1]';
             B = pSEBracket3FromC2N * A;
@@ -521,14 +611,14 @@ for i =2:spanResampledDataSize
             logMsg = sprintf('Sample: %d, plot car velocity',i);
             log2terminal('D',TAG,logMsg);
 
-            pMeasurementAccelerometer = spanResampledData{i,5};
-            A = [0 0 0 1; pImuStateAccelerometerLineLength*pMeasurementAccelerometer(1) 0 0 1; 0 0 0 1; 0 pImuStateAccelerometerLineLength*pMeasurementAccelerometer(2) 0 1; 0 0 0 1; 0 0 pImuStateAccelerometerLineLength*pMeasurementAccelerometer(3) 1]';
-            B = pSEBracket3FromS2N * A;
-            plot3(B(1,1:2),B(2,1:2),B(3,1:2),'Color',ViridisColerPalette06(1),'LineStyle','--','LineWidth',pImuStateAccelerometerLineWidth);
-            plot3(B(1,3:4),B(2,3:4),B(3,3:4),'Color',ViridisColerPalette06(3),'LineStyle','--','LineWidth',pImuStateAccelerometerLineWidth);
-            plot3(B(1,5:6),B(2,5:6),B(3,5:6),'Color',ViridisColerPalette06(5),'LineStyle','--','LineWidth',pImuStateAccelerometerLineWidth);
-            logMsg = sprintf('Sample: %d, plot car velocity',i);
-            log2terminal('D',TAG,logMsg);
+            % pMeasurementAccelerometer = spanResampledData{i,5};
+            % A = [0 0 0 1; pImuStateAccelerometerLineLength*pMeasurementAccelerometer(1) 0 0 1; 0 0 0 1; 0 pImuStateAccelerometerLineLength*pMeasurementAccelerometer(2) 0 1; 0 0 0 1; 0 0 pImuStateAccelerometerLineLength*pMeasurementAccelerometer(3) 1]';
+            % B = pSEBracket3FromS2N * A;
+            % plot3(B(1,1:2),B(2,1:2),B(3,1:2),'Color',ViridisColerPalette06(1),'LineStyle','--','LineWidth',pImuStateAccelerometerLineWidth);
+            % plot3(B(1,3:4),B(2,3:4),B(3,3:4),'Color',ViridisColerPalette06(3),'LineStyle','--','LineWidth',pImuStateAccelerometerLineWidth);
+            % plot3(B(1,5:6),B(2,5:6),B(3,5:6),'Color',ViridisColerPalette06(5),'LineStyle','--','LineWidth',pImuStateAccelerometerLineWidth);
+            % logMsg = sprintf('Sample: %d, plot car velocity',i);
+            % log2terminal('D',TAG,logMsg);
         end
 
 %         if i == 2 || mod(i,cCarCoordinateAxisSampleCountInterval) == 0
@@ -597,5 +687,13 @@ end
 plotIndex = 1:spanResampledDataSize;
 % plotSESubscript4Bracket3Pose(filterIntermediateState(plotIndex,1),filterIntermediateState(plotIndex,2),filterIntermediateState(plotIndex,4),spanResampledData(plotIndex,4),spanResampledData(plotIndex,5));
 
+zClipHeadTimeString = convertDaySecondsToString(filterIntermediateState{1,1},0);
+zClipTailTimeString = convertDaySecondsToString(filterIntermediateState{spanResampledDataSize,1},0);
+logMsg = sprintf('Date %s, Track %s, phone %s, clip coarse time from %s to %s',cDatasetCollectionDateFolderName,cPreprocessTrackFolderName,cPreprocessPhoneFolderName,zClipHeadTimeString,zClipTailTimeString);
+log2terminal('I',TAG,logMsg);
+
+
+
 % plotSEBracket3Comparison(spanResampledData(plotIndex,2),filterIntermediateState(plotIndex,2),50);
+plotTransitionComparison(spanResampledData(plotIndex,2),filterIntermediateState(plotIndex,2),50);
 % plotSEPose(spanResampledData(3000:6000,2));
