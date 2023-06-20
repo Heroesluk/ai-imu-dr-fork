@@ -21,18 +21,18 @@ NS2US = 1/US2NS;
 % cDatasetFolderPath = 'C:\DoctorRelated\20230410重庆VDR数据采集';
 cDatasetFolderPath = 'E:\DoctorRelated\20230410重庆VDR数据采集';
 % TODO: S1.2: 配置数据集存储文件夹 采集日期
-cDatasetCollectionDate = '2023_04_13';
+cDatasetCollectionDate = '2023_04_10';
 % 添加预处理粗分割文件夹路径
 cReorganizedFolderName = 'Reorganized';
 cReorganizedFolderPath = fullfile(cDatasetFolderPath,cDatasetCollectionDate,cReorganizedFolderName);
 % TODO: S1.3: 配置数据集存储文件夹 采集轨迹编号
-% cPreprocessTrackList = ["0012"];
-cPreprocessTrackList = ["0008" "0009" "0010" "0011" "0012" "0013" "0014" "0015" "0016"];
+cPreprocessTrackList = ["0006"];
+% cPreprocessTrackList = ["0008" "0009" "0010" "0011" "0012" "0013" "0014" "0015" "0016"];
 cPreprocessTrackListLength = length(cPreprocessTrackList);
 % TODO: S1.4: 配置数据集存储文件夹 采集手机
 % cPhoneMapNumber = ["GOOGLE_Pixel3"];
-% cPhoneMapNumber = ["HUAWEI_Mate30"];
-cPhoneMapNumber = ["HUAWEI_P20"];
+cPhoneMapNumber = ["HUAWEI_Mate30"];
+% cPhoneMapNumber = ["HUAWEI_P20"];
 % cPhoneMapNumber = ["GOOGLE_Pixel3" "HUAWEI_Mate30"];
 % cPhoneMapNumber = ["GOOGLE_Pixel3" "HUAWEI_Mate30" "HUAWEI_P20"];
 kPhoneMapNumberLength = length(cPhoneMapNumber);
@@ -48,20 +48,20 @@ cTrackSynchronizedFileName = 'TrackSynchronized.csv';
 
 % DEBUG: 配置是否重新计算
 isRecomputeTrackSynchronizedFile = true;
-isRecomputeTrackGroundTruthNavTime = true;
+isRecomputeTrackGroundTruthNavTime = false;
 
 % DEBUG: 配置可视化时间同步传感器测量值
 cVisualizeCoarseClipData = 0;
-cVisualizeFineClipData = 0;
-cVisualizeResampledClipData = 0;
-cVisualizeSynchronizedClipData = 0;
+cVisualizeFineClipData = 1;
+cVisualizeResampledClipData = 1;
+cVisualizeSynchronizedClipData = 1;
 
 % TODO: S1.5: 配置初始时间同步
-cInitTimeSynchronizationIndex = 261;
+cInitTimeSynchronizationIndex = 15;
 prevTimeSynchronizationIndex = 0;
 
 % DEBUG: 配置可视化全局时间同步
-cVisualizeGlobalSynchronization = false;
+cVisualizeGlobalSynchronization = true;
 
 % DEBUG: 配置可视化局部时间同步
 cVisualizeLocalSynchronization = false;
@@ -252,7 +252,9 @@ for i = 1:cPreprocessTrackListLength
                         end
 
                         globalSynchronizeTimeIndexStatisticTabulate = tabulate(globalSynchronizeTimeIndexStatistic(:,3));
-                        globalSynchronizeTimeIndexStatisticTabulateSorted = sortrows(globalSynchronizeTimeIndexStatisticTabulate,2,'descend');
+                        % 
+                        globalSynchronizeTimeIndexStatisticTabulateValid = globalSynchronizeTimeIndexStatisticTabulate(globalSynchronizeTimeIndexStatisticTabulate(:,2)>0,:);
+                        globalSynchronizeTimeIndexStatisticTabulateSorted = sortrows(globalSynchronizeTimeIndexStatisticTabulateValid,2,'descend');
                         globalSynchronizeTimeIndexStatisticTabulateSortedSize = size(globalSynchronizeTimeIndexStatisticTabulateSorted,1);
                         
                         if globalSynchronizeTimeIndexStatisticTabulateSortedSize >= 3
@@ -355,7 +357,8 @@ for i = 1:cPreprocessTrackListLength
 
 
                         % Interpolate train data
-                        synchronizeTimeBias = -globalSynchronizeTimeIndexSelected;
+                        % synchronizeTimeBias = -globalSynchronizeTimeIndexSelected;
+                        synchronizeTimeBias = 15;
                         prevTimeSynchronizationIndex = globalSynchronizeTimeIndexSelected;
 
                         logMsg = sprintf('Date %s, track %s, phone %s, synchronize time bias %.3f s',cDatasetCollectionDate,tTrackFolderNameStr,tTrackSmartPhoneFolderNameChar,synchronizeTimeBias * resampleInterval);
