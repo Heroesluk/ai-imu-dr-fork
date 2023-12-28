@@ -453,6 +453,12 @@ class TORCHIEKF(torch.nn.Module, NUMPYIEKF):
         self.u_loc = dataset.normalize_factors['u_loc'].double()
         self.u_std = dataset.normalize_factors['u_std'].double()
 
+    def get_init_state_covariance_factor(self):
+        return self.initprocesscov_net.init_cov(self).detach().cpu().numpy()
+
+    def get_init_process_covariance_factor(self):
+        return self.initprocesscov_net.init_processcov(self)
+
     def set_Q(self):
         """
         Update the process noise covariance

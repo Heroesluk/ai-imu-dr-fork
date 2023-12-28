@@ -31,6 +31,7 @@ def launch(args):
 
     if args.results_filter:
         results_filter(args, dataset)
+        export_filter(args, dataset)
 
 
 class KITTIParameters(IEKF.Parameters):
@@ -500,6 +501,50 @@ def test_filter(args, dataset):
             'measurements_covs': measurements_covs,
             }
         dataset.dump(mondict, args.path_results, dataset_name + "_filter.p")
+
+
+def export_filter(args, dataset):
+    iekf = IEKF()
+    iekf.set_car_coordinate_type(args.car_coordinate_type_string)
+
+    torch_iekf = TORCHIEKF()
+    torch_iekf.set_car_coordinate_type(args.car_coordinate_type_string)
+
+    # put Kitti parameters
+    iekf.filter_parameters = KITTIParameters()
+    iekf.set_param_attr()
+    torch_iekf.filter_parameters = KITTIParameters()
+    torch_iekf.set_param_attr()
+
+    torch_iekf.load(args, dataset)
+    iekf.set_learned_covariance(torch_iekf)
+
+    test_datasets = []
+    for dataset_raw in dataset.datasets:
+        if dataset_raw in dataset.datasets_test:
+            test_datasets += [dataset_raw]
+
+    dataset.datasets = test_datasets
+
+    for i in range(0, len(dataset.datasets)):
+        dataset_name = dataset.dataset_name(i)
+        # if dataset_name not in dataset.odometry_benchmark.keys():
+        #     continue
+        print("Test filter on sequence: " + dataset_name)
+        t, ang_gt, p_gt, v_gt, u = prepare_data(args, dataset, dataset_name, i,
+                                                to_numpy=True)
+        u_t = torch.from_numpy(u).double()
+
+        measurements_covs = torch_iekf.forward_nets(u_t)
+        measurements_covs = measurements_covs.detach().numpy()
+
+        torch_iekf_init_state_covariance_factor = torch_iekf.get_init_state_covariance_factor()
+        torch_iekf_init_process_covariance_factor = torch_iekf.get_init_process_covariance_factor()
+        np.savetxt(os.path.join(args.path_results, dataset_name + "init_state_covariance" + ".txt"),
+                   torch_iekf_init_state_covariance_factor)
+        np.savetxt(os.path.join(args.path_results, dataset_name + "init_process_covariance" + ".txt"),
+                   torch_iekf_init_process_covariance_factor)
+        np.savetxt(os.path.join(args.path_results, dataset_name + "measurements_covariance" + ".txt"), measurements_covs)
 
 
 class KITTIArgs():
