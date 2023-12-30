@@ -6,6 +6,6 @@ if priority == 'E'
     fileID = 2;
 end
 
-logFormatTime = datestr(now,'yyyy-mm-dd HH:MM:ss.FFF');
+logFormatTime = string(datetime("now"),'yyyy-MM-dd HH:mm:ss.SSS');
 fprintf(fileID,'%s %s: %s: %s\n',logFormatTime,priority,tag,msg);
 end

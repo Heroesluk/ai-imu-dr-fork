@@ -24,7 +24,7 @@ if plotFlag ~= 0
     xlim(pXLim);
     xlabel('Sample (s)');
     ylabel('Value (rad/s)');
-    title('Ground truth raw IMU gyroscope data');
+    title('Smart Phone raw IMU gyroscope data');
     legend;
     hold off;
     subplot(timeReferenceSubPlotRows,timeReferenceSubPlotColumns,2);
