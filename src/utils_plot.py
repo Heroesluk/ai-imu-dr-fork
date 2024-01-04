@@ -204,7 +204,7 @@ def results_filter(args, dataset):
         np.savetxt(os.path.join(folder_path, "measurements_covs" + ".txt"), measurements_covs)
 
 
-        # plt.show(block=True)
+        plt.show(block=True)
 
 
 

@@ -459,8 +459,8 @@ def test_filter(args, dataset):
 
 
 class KITTIArgs():
-        path_data_base = "E:/GitHubRepositories/ai-imu-dr/data"
-        path_data_save = "../data"
+        path_data_base = "../dataraw/2011_09_30_drive_0034_extract"
+        path_data_save = "../dataraw/2011_09_30_drive_0034_extract"
         path_results = "../results"
         path_temp = "../temp"
 
@@ -473,10 +473,10 @@ class KITTIArgs():
         continue_training = True
 
         # choose what to do
-        read_data = 0
+        read_data = 1
         train_filter = 0
         test_filter = 1
-        results_filter = 0
+        results_filter = 1
         dataset_class = KITTIDataset
         parameter_class = KITTIParameters
 

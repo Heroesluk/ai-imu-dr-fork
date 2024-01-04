@@ -51,7 +51,7 @@ class BaseDataset(Dataset):
         # factors for normalizing inputs
         self.normalize_factors = None
         self.get_datasets()
-        self.set_file_normalize_factor_name(args.file_name_normalize_factors)
+        # self.set_file_normalize_factor_name(args.file_name_normalize_factors)
         self.set_normalize_factors()
 
     def __getitem__(self, i):
