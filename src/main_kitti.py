@@ -197,8 +197,7 @@ class KITTIDataset(BaseDataset):
                 k_max = len(oxts)
                 for k in range(k_max):
                     oxts_k = oxts[k]
-                    t[k] = 3600 * t[k].hour + 60 * t[k].minute + t[k].second + t[
-                        k].microsecond / 1e6
+                    t[k] = 3600 * t[k].hour + 60 * t[k].minute + t[k].second + t[k].microsecond / 1e6 # TODO: time
                     lat_oxts[k] = oxts_k[0].lat
                     lon_oxts[k] = oxts_k[0].lon
                     alt_oxts[k] = oxts_k[0].alt
@@ -211,19 +210,19 @@ class KITTIDataset(BaseDataset):
                     gyro[k, 0] = oxts_k[0].wf
                     gyro[k, 1] = oxts_k[0].wl
                     gyro[k, 2] = oxts_k[0].wu
-                    gyro_bis[k, 0] = oxts_k[0].wx
-                    gyro_bis[k, 1] = oxts_k[0].wy
-                    gyro_bis[k, 2] = oxts_k[0].wz
+                    gyro_bis[k, 0] = oxts_k[0].wx  # TODO: this,
+                    gyro_bis[k, 1] = oxts_k[0].wy # TODO: this,
+                    gyro_bis[k, 2] = oxts_k[0].wz # TODO: this,
                     roll_oxts[k] = oxts_k[0].roll
                     pitch_oxts[k] = oxts_k[0].pitch
                     yaw_oxts[k] = oxts_k[0].yaw
-                    v_gt[k, 0] = oxts_k[0].ve
-                    v_gt[k, 1] = oxts_k[0].vn
-                    v_gt[k, 2] = oxts_k[0].vu
+                    v_gt[k, 0] = oxts_k[0].ve # TODO: this, ground velo
+                    v_gt[k, 1] = oxts_k[0].vn # TODO: this, ground velo
+                    v_gt[k, 2] = oxts_k[0].vu # TODO: this, ground velo
                     v_rob_gt[k, 0] = oxts_k[0].vf
                     v_rob_gt[k, 1] = oxts_k[0].vl
                     v_rob_gt[k, 2] = oxts_k[0].vu
-                    p_gt[k] = oxts_k[1][:3, 3]
+                    p_gt[k] = oxts_k[1][:3, 3] # TODO: this, ground position(?)
                     Rot_gt_k = oxts_k[1][:3, :3]
                     roll_gt[k], pitch_gt[k], yaw_gt[k] = IEKF.to_rpy(Rot_gt_k)
 
@@ -242,12 +241,13 @@ class KITTIDataset(BaseDataset):
                 p_oxts[:, [0, 1]] = p_oxts[:, [1, 0]]  # see note
 
                 # take correct imu measurements
-                u = np.concatenate((gyro_bis, acc_bis), -1)
+                u = np.concatenate((gyro_bis, acc_bis), -1) # TODO: 6 x len array representing gyro and acc
+                # TODO: gyrobis is wx,wy,wz, acc is af al au
                 # convert from numpy
                 t = torch.from_numpy(t)
                 p_gt = torch.from_numpy(p_gt)
                 v_gt = torch.from_numpy(v_gt)
-                ang_gt = torch.from_numpy(ang_gt)
+                ang_gt = torch.from_numpy(ang_gt)  # TODO: this, ground truth
                 u = torch.from_numpy(u)
 
                 # convert to float
@@ -261,6 +261,16 @@ class KITTIDataset(BaseDataset):
                     't': t, 'p_gt': p_gt, 'ang_gt': ang_gt, 'v_gt': v_gt,
                     'u': u, 'name': date_dir2, 't0': t0
                     }
+
+                # t:  1 row times len in seconds float  [0.2, 1, 1.4]
+                # pt: x,y,z times len ground truth [0,1,0.5],[0.1,0.2,1]...
+                # vt: vx,vy,vz ^
+                # ang_gt: roll,pitch, yaw ^
+                # u:  6 x len array representing gyro and acc
+
+
+
+
 
                 t_tot += t[-1] - t[0]
                 KITTIDataset.dump(mondict, args.path_data_save, date_dir2)

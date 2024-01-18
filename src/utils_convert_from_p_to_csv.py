@@ -7,8 +7,8 @@ import pandas as pd
 
 
 if __name__ == '__main__':
-    pickle_file_folder_path = "E:\\DoctorRelated\\20230410重庆VDR数据采集\\2023_04_10\\Reorganized\\0008\\GOOGLE_Pixel3\\DATASET_AIIMUDR"
-    converted_file_name = "2023_04_10_drive_0008_phone_google_pixel3_extract_test"
+    pickle_file_folder_path = "/home/heroesluk/PycharmProjects/ai-imu-dr-china/dataraw/2011_09_30_drive_0034_extract/"
+    converted_file_name = "2011_09_30_drive_0034_extract"
 
     PICLE_FILE_EXTENSION = ".p"
     CSV_FILE_EXTENSION = ".csv"
@@ -34,6 +34,15 @@ if __name__ == '__main__':
     converted_numpy_p_gt = converted_pickle_dict_p_gt.cpu().double().numpy()
     converted_numpy_v_gt = converted_pickle_dict_v_gt.cpu().double().numpy()
     converted_numpy_u = converted_pickle_dict_u.cpu().double().numpy()
+
+    # 1T,
+    # 6U,
+    # 3GT,
+    # 3GT,
+    # 3GT
+    # dont delete:
+    # t, wx,wy,wz,af,al,au, roll_gt, pitch_gt, yaw_gt, px_gt, py_gt, pz_gt, vx_gt, vy_gt, vz_gt
+    # tabs
 
     converted_numpy = np.hstack((converted_numpy_t, converted_numpy_u, converted_pickle_dict_ang_gt, converted_pickle_dict_p_gt, converted_pickle_dict_v_gt))
     np.savetxt(converted_csv_file_path, converted_numpy, fmt='%.9f', delimiter=", ")
